@@ -2,8 +2,7 @@
 using System.Threading;
 using System.Windows.Forms;
 using TGC.Core.Direct3D;
-using TGC.Core.Example;
-using TGC.Core.Input;
+using TGC.Group.Libs;
 using TGC.Core.Shaders;
 using TGC.Core.Sound;
 using TGC.Core.Textures;
@@ -28,7 +27,7 @@ namespace TGC.Group.Form
         /// <summary>
         ///     Ejemplo del juego a correr
         /// </summary>
-        private TgcExample Modelo { get; set; }
+        private MyTgcExample Modelo { get; set; }
 
         /// <summary>
         ///     Obtener o parar el estado del RenderLoop.
@@ -43,7 +42,7 @@ namespace TGC.Group.Form
         /// <summary>
         ///     Permite manejar los inputs de la computadora.
         /// </summary>
-        private TgcD3dInput Input { get; set; }
+        private MyTgcInput Input { get; set; }
 
         private void GameForm_Load(object sender, EventArgs e)
         {
@@ -80,7 +79,7 @@ namespace TGC.Group.Form
             D3DDevice.Instance.InitializeD3DDevice(panel3D);
 
             //Inicio inputs
-            Input = new TgcD3dInput();
+            Input = new MyTgcInput();
             Input.Initialize(this, panel3D);
 
             //Inicio sonido

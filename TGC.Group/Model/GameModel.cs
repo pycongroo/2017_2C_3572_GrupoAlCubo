@@ -2,11 +2,12 @@ using Microsoft.DirectX;
 using Microsoft.DirectX.DirectInput;
 using System.Drawing;
 using TGC.Core.Direct3D;
+using TGC.Core.Example;
 using TGC.Core.Geometry;
+using TGC.Core.Input;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
 using TGC.Core.Utils;
-using TGC.Group.Libs;
 
 namespace TGC.Group.Model
 {
@@ -16,7 +17,7 @@ namespace TGC.Group.Model
     ///     ejecute el nuevo ejemplo deben cambiar el modelo que instancia GameForm <see cref="Form.GameForm.InitGraphics()" />
     ///     line 97.
     /// </summary>
-    public class GameModel : MyTgcExample
+    public class GameModel : TgcExample
     {
         /// <summary>
         ///     Constructor del juego.
@@ -94,13 +95,13 @@ namespace TGC.Group.Model
             PreUpdate();
 
             //Capturar Input teclado
-            if (Input.keyPressed(Key.F)||Input.joy_button_pressed(MyTgcInput.XB360Digital.BUTTON_B))
+            if (Input.keyPressed(Key.F))
             {
                 BoundingBox = !BoundingBox;
             }
 
             //Capturar Input Mouse
-            if (Input.buttonUp(MyTgcInput.MouseButtons.BUTTON_LEFT)||Input.joy_button_pressed(MyTgcInput.XB360Digital.BUTTON_A))
+            if (Input.buttonUp(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
                 //Como ejemplo podemos hacer un movimiento simple de la cámara.
                 //En este caso le sumamos un valor en Y

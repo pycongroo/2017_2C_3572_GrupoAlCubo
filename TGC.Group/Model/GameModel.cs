@@ -7,6 +7,7 @@ using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
 using TGC.Core.Utils;
 using TGC.Core.Example;
+using TGC.Group.Camera;
 using System;
 
 namespace TGC.Group.Model
@@ -54,7 +55,7 @@ namespace TGC.Group.Model
         {
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
-
+            
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
@@ -114,8 +115,12 @@ namespace TGC.Group.Model
             var cameraPosition = new Vector3(6000, 1000, 6000);
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
+            var moveSpeed = 500f;
+            var jumpSpeed = 200f;
+
+            Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, Input);
             //Configuro donde esta la posicion de la camara y hacia donde mira.
-            Camara.SetCamera(cameraPosition, lookAt);
+            //Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
         }
@@ -130,7 +135,7 @@ namespace TGC.Group.Model
             PreUpdate();
 
             //Capturar Input Mouse
-            if (Input.buttonUp(Core.Input.TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            /*if (Input.buttonUp(Core.Input.TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
                 //Como ejemplo podemos hacer un movimiento simple de la cámara.
                 //En este caso le sumamos un valor en Y
@@ -142,7 +147,7 @@ namespace TGC.Group.Model
                 {
                     Camara.SetCamera(new Vector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
                 }
-            }
+            }*/
         }
 
         /// <summary>

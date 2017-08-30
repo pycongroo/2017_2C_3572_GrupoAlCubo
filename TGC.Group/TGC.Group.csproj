@@ -87,6 +87,7 @@
     <Compile Include="Libs\MyTgcInput.cs" />
     <Compile Include="Libs\MyTgcExample.cs" />
     <Compile Include="Model\GameModel.cs" />
+    <Compile Include="Model\Suelo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form\GameForm.resx">

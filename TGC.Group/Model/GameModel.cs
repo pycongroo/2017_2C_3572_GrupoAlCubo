@@ -6,7 +6,8 @@ using TGC.Core.Geometry;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
 using TGC.Core.Utils;
-using TGC.Group.Libs;
+using TGC.Core.Example;
+using System;
 
 namespace TGC.Group.Model
 {
@@ -16,7 +17,7 @@ namespace TGC.Group.Model
     ///     ejecute el nuevo ejemplo deben cambiar el modelo que instancia GameForm <see cref="Form.GameForm.InitGraphics()" />
     ///     line 97.
     /// </summary>
-    public class GameModel : MyTgcExample
+    public class GameModel : TgcExample
     {
         /// <summary>
         ///     Constructor del juego.
@@ -30,15 +31,19 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
+        private TgcPlane Piso { get; set; }
+        private TgcPlane[] ParedXY = new TgcPlane[10];
+        private TgcPlane[] ParedNXY = new TgcPlane[10];
+        private TgcPlane[] ParedYZ = new TgcPlane[10];
+        private TgcPlane[] ParedNYZ = new TgcPlane[10];
+        private TgcPlane[,] ParedInternaXY = new TgcPlane[9, 10];
+        private TgcPlane[,] ParedInternaYZ = new TgcPlane[9, 10];
+        private bool[,] wallMatXY = new bool[9, 10];
+        private bool[,] wallMatYZ = new bool[9, 10];
+
         //Caja que se muestra en el ejemplo.
         private TgcBox Box { get; set; }
-
-        //Mesh de TgcLogo.
-        private TgcMesh Mesh { get; set; }
-
-        //Boleano para ver si dibujamos el boundingbox
-        private bool BoundingBox { get; set; }
-
+        
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
@@ -53,29 +58,60 @@ namespace TGC.Group.Model
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
+            var pathTexturaPiso = MediaDir + "rock_floor1.jpg";
+            var pathTexturaPared = MediaDir + "brick1_1.jpg";
+            var sizeParedXY = new Vector3(512, 512, 0);
+            var sizeParedYZ = new Vector3(0, 512, 512);
+            var sizePiso = new Vector3(5120, 0, 5120);
 
             //Cargamos una textura, tener en cuenta que cargar una textura significa crear una copia en memoria.
             //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
             var texture = TgcTexture.createTexture(pathTexturaCaja);
+            var texturePiso = TgcTexture.createTexture(pathTexturaPiso);
+            var texturaPared = TgcTexture.createTexture(pathTexturaPared);
 
+            Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
+            for (int i=0; i< 10; i++)
+            {
+                var posXY = new Vector3(0 + i*512, 0, 0);
+                ParedXY[i] = new TgcPlane(posXY, sizeParedXY, TgcPlane.Orientations.XYplane, texturaPared);
+                var posNXY = new Vector3(0 + i * 512, 0, 5120);
+                ParedNXY[i] = new TgcPlane(posNXY, sizeParedXY, TgcPlane.Orientations.XYplane, texturaPared);
+                var posYZ = new Vector3(0, 0, 0 + i * 512);
+                ParedYZ[i] = new TgcPlane(posYZ, sizeParedYZ, TgcPlane.Orientations.YZplane, texturaPared);
+                var posNYZ = new Vector3(5120, 0, 0 + i * 512);
+                ParedNYZ[i] = new TgcPlane(posNYZ, sizeParedYZ, TgcPlane.Orientations.YZplane, texturaPared);
+            }
+
+            Random random = new Random();
+            for (int i = 1; i < 10; i++)
+            {
+                for(int j = 0; j < 10; j++)
+                {
+                    var posXY = new Vector3(0 + i * 512, 0, 0 + j*512);
+                    ParedInternaXY[i-1, j] = new TgcPlane(posXY, sizeParedXY, TgcPlane.Orientations.XYplane, texturaPared);
+                    var posYZ = new Vector3(0 + j * 512, 0, 0 + i*512);
+                    ParedInternaYZ[i-1, j] = new TgcPlane(posYZ, sizeParedYZ, TgcPlane.Orientations.YZplane, texturaPared);
+                    //generacion de valores para aparicion de paredes
+                    int valR = random.Next(0, 10);
+                    wallMatXY[i-1, j] = (valR < 7);
+                    valR = random.Next(0, 10);
+                    wallMatYZ[i-1, j] = (valR < 7);
+                }
+            }
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
-            var size = new Vector3(5, 10, 5);
+            var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
             Box = TgcBox.fromSize(size, texture);
             //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
             //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new Vector3(-25, 0, 0);
-
-            //Cargo el unico mesh que tiene la escena.
-            Mesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "LogoTGC-TgcScene.xml").Meshes[0];
-            //Defino una escala en el modelo logico del mesh que es muy grande.
-            Mesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-
+            Box.Position = new Vector3(50, 50, 50);
+            
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
-            var cameraPosition = new Vector3(0, 0, 125);
+            var cameraPosition = new Vector3(6000, 1000, 6000);
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
             //Configuro donde esta la posicion de la camara y hacia donde mira.
@@ -93,22 +129,16 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
-            //Capturar Input teclado
-            if (Input.keyPressed(Key.F)||Input.joy_button_pressed(MyTgcInput.XB360Digital.BUTTON_B))
-            {
-                BoundingBox = !BoundingBox;
-            }
-
             //Capturar Input Mouse
-            if (Input.buttonUp(MyTgcInput.MouseButtons.BUTTON_LEFT)||Input.joy_button_pressed(MyTgcInput.XB360Digital.BUTTON_A))
+            if (Input.buttonUp(Core.Input.TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
                 //Como ejemplo podemos hacer un movimiento simple de la cámara.
                 //En este caso le sumamos un valor en Y
-                Camara.SetCamera(Camara.Position + new Vector3(0, 10f, 0), Camara.LookAt);
+                Camara.SetCamera(Camara.Position + new Vector3(0, 100f, 0), Camara.LookAt);
                 //Ver ejemplos de cámara para otras operaciones posibles.
 
                 //Si superamos cierto Y volvemos a la posición original.
-                if (Camara.Position.Y > 300f)
+                if (Camara.Position.Y > 6000f)
                 {
                     Camara.SetCamera(new Vector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
                 }
@@ -130,7 +160,30 @@ namespace TGC.Group.Model
             DrawText.drawText(
                 "Con clic izquierdo subimos la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
                 Color.OrangeRed);
-
+            Piso.render();
+            for (int i = 0; i < 10; i++)
+            {
+                ParedXY[i].render();
+                ParedNXY[i].render();
+                ParedYZ[i].render();
+                ParedNYZ[i].render();
+            }
+            for (int i = 1; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (wallMatXY[i-1, j])
+                    {
+                        ParedInternaXY[i - 1, j].render();
+                    }
+                    if (wallMatYZ[i-1, j])
+                    {
+                        ParedInternaYZ[i - 1, j].render();
+                    }
+                }
+            }
+            //Piso2.render();
+            //Piso3.render();
             //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
             //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
             Box.Transform = Matrix.Scaling(Box.Scale) *
@@ -139,19 +192,6 @@ namespace TGC.Group.Model
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
             Box.render();
-
-            //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
-            //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
-            Mesh.UpdateMeshTransform();
-            //Render del mesh
-            Mesh.render();
-
-            //Render de BoundingBox, muy útil para debug de colisiones.
-            if (BoundingBox)
-            {
-                Box.BoundingBox.render();
-                Mesh.BoundingBox.render();
-            }
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -166,8 +206,6 @@ namespace TGC.Group.Model
         {
             //Dispose de la caja.
             Box.dispose();
-            //Dispose del mesh.
-            Mesh.dispose();
         }
     }
 }

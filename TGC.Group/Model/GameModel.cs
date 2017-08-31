@@ -112,7 +112,7 @@ namespace TGC.Group.Model
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
-            var cameraPosition = new Vector3(6000, 1000, 6000);
+            var cameraPosition = new Vector3(4850, 270, 220);
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
             var moveSpeed = 500f;

@@ -31,12 +31,15 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
-        private TgcScene currentScene;
+        private TgcScene[,] currentScene = new TgcScene[10, 10];
+        private bool[,] skeletonsAp = new bool[10, 10];
         private TgcPlane Piso { get; set; }
         private TgcPlane[] ParedXY = new TgcPlane[10];
         private TgcPlane[] ParedNXY = new TgcPlane[10];
         private TgcPlane[] ParedYZ = new TgcPlane[10];
         private TgcPlane[] ParedNYZ = new TgcPlane[10];
+        private TgcPlane[,] DecoWallXY = new TgcPlane[9, 10];
+        private TgcPlane[,] DecoWallYZ = new TgcPlane[9, 10];
         private TgcPlane[,] ParedInternaXY = new TgcPlane[9, 10];
         private TgcPlane[,] ParedInternaYZ = new TgcPlane[9, 10];
         private bool[,] wallMatXY = new bool[9, 10];
@@ -61,15 +64,21 @@ namespace TGC.Group.Model
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
             var pathTexturaPiso = MediaDir + "piso2.jpg";
             var pathTexturaPared = MediaDir + "brick1_1.jpg";
+            var pathTexturaDeco = MediaDir + "cartelera2.jpg";
+            var sizeDecoXY = new Vector3(300, 300, 0);
+            var sizeDecoYZ = new Vector3(0, 300, 300);
             var sizeParedXY = new Vector3(512, 512, 0);
             var sizeParedYZ = new Vector3(0, 512, 512);
             var sizePiso = new Vector3(5120, 0, 5120);
+            var relDecoPosXY = new Vector3(100, 100, 10);
+            var relDecoPosYZ = new Vector3(10, 100, 100);
 
             //Cargamos una textura, tener en cuenta que cargar una textura significa crear una copia en memoria.
             //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
             var texture = TgcTexture.createTexture(pathTexturaCaja);
             var texturePiso = TgcTexture.createTexture(pathTexturaPiso);
             var texturaPared = TgcTexture.createTexture(pathTexturaPared);
+            var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
 
             Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
             for (int i=0; i< 10; i++)
@@ -91,8 +100,10 @@ namespace TGC.Group.Model
                 {
                     var posXY = new Vector3(0 + i * 512, 0, 0 + j*512);
                     ParedInternaXY[i-1, j] = new TgcPlane(posXY, sizeParedXY, TgcPlane.Orientations.XYplane, texturaPared);
+                    DecoWallXY[i - 1, j] = new TgcPlane(posXY+relDecoPosXY, sizeDecoXY, TgcPlane.Orientations.XYplane, texturaDeco);
                     var posYZ = new Vector3(0 + j * 512, 0, 0 + i*512);
                     ParedInternaYZ[i-1, j] = new TgcPlane(posYZ, sizeParedYZ, TgcPlane.Orientations.YZplane, texturaPared);
+                    DecoWallYZ[i - 1, j] = new TgcPlane(posYZ+relDecoPosYZ, sizeDecoYZ, TgcPlane.Orientations.YZplane, texturaDeco);
                     //generacion de valores para aparicion de paredes
                     int valR = random.Next(0, 10);
                     wallMatXY[i-1, j] = (valR < 7);
@@ -118,12 +129,18 @@ namespace TGC.Group.Model
             var moveSpeed = 500f;
             var jumpSpeed = 200f;
 
-            loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml");
-            //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
-            currentScene.Meshes[0].AutoTransformEnable = true;
-            //Desplazarlo
-            currentScene.Meshes[0].move(5120, 0, 5120);
-
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml", i, j);
+                    //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
+                    currentScene[i, j].Meshes[0].AutoTransformEnable = true;
+                    //Desplazarlo
+                    currentScene[i, j].Meshes[0].move(512 * i + 256, 30, 512 * j + 256);
+                    skeletonsAp[i, j] = (random.Next(0, 10) < 6);
+                }
+            }
 
             Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, Input);
             //Configuro donde esta la posicion de la camara y hacia donde mira.
@@ -187,10 +204,23 @@ namespace TGC.Group.Model
                     if (wallMatXY[i-1, j])
                     {
                         ParedInternaXY[i - 1, j].render();
+                        DecoWallXY[i - 1, j].render();
                     }
                     if (wallMatYZ[i-1, j])
                     {
                         ParedInternaYZ[i - 1, j].render();
+                        DecoWallYZ[i - 1, j].render();
+                    }
+                }
+            }
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (skeletonsAp[i, j])
+                    {
+                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100,100,100));
+                        currentScene[i, j].Meshes[0].render();
                     }
                 }
             }
@@ -204,7 +234,7 @@ namespace TGC.Group.Model
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
             Box.render();
-            currentScene.Meshes[0].render();
+            //currentScene.Meshes[0].render();
             
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -219,24 +249,30 @@ namespace TGC.Group.Model
         {
             //Dispose de la caja.
             Box.dispose();
-            currentScene.Meshes[0].dispose();
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    currentScene[i, j].Meshes[0].dispose();
+                }
+            }
         }
 
         /// <summary>
         ///     Carga una malla estatica de formato TGC
         /// </summary>
-        private void loadMesh(string path)
+        private void loadMesh(string path, int i, int j)
         {
             //Dispose de escena anterior
-            if (currentScene != null)
+            if (currentScene[i,j] != null)
             {
-                currentScene.disposeAll();
+                currentScene[i,j].disposeAll();
             }
 
             //Cargar escena con herramienta TgcSceneLoader
             var loader = new TgcSceneLoader();
-            currentScene = loader.loadSceneFromFile(path);
-
+            currentScene[i,j] = loader.loadSceneFromFile(path);
+            
         }
     }
 }

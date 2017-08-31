@@ -31,7 +31,7 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
-
+        private TgcScene currentScene;
         private TgcPlane Piso { get; set; }
         private TgcPlane[] ParedXY = new TgcPlane[10];
         private TgcPlane[] ParedNXY = new TgcPlane[10];
@@ -59,7 +59,7 @@ namespace TGC.Group.Model
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
-            var pathTexturaPiso = MediaDir + "rock_floor1.jpg";
+            var pathTexturaPiso = MediaDir + "piso2.jpg";
             var pathTexturaPared = MediaDir + "brick1_1.jpg";
             var sizeParedXY = new Vector3(512, 512, 0);
             var sizeParedYZ = new Vector3(0, 512, 512);
@@ -117,6 +117,13 @@ namespace TGC.Group.Model
             var lookAt = Vector3.Empty;
             var moveSpeed = 500f;
             var jumpSpeed = 200f;
+
+            loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml");
+            //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
+            currentScene.Meshes[0].AutoTransformEnable = true;
+            //Desplazarlo
+            currentScene.Meshes[0].move(5120, 0, 5120);
+
 
             Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, Input);
             //Configuro donde esta la posicion de la camara y hacia donde mira.
@@ -197,7 +204,8 @@ namespace TGC.Group.Model
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
             Box.render();
-
+            currentScene.Meshes[0].render();
+            
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }
@@ -211,6 +219,24 @@ namespace TGC.Group.Model
         {
             //Dispose de la caja.
             Box.dispose();
+            currentScene.Meshes[0].dispose();
+        }
+
+        /// <summary>
+        ///     Carga una malla estatica de formato TGC
+        /// </summary>
+        private void loadMesh(string path)
+        {
+            //Dispose de escena anterior
+            if (currentScene != null)
+            {
+                currentScene.disposeAll();
+            }
+
+            //Cargar escena con herramienta TgcSceneLoader
+            var loader = new TgcSceneLoader();
+            currentScene = loader.loadSceneFromFile(path);
+
         }
     }
 }

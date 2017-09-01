@@ -62,7 +62,7 @@ namespace TGC.Group.Model
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
-            var pathTexturaPiso = MediaDir + "piso2.jpg";
+            var pathTexturaPiso = MediaDir + "rock_floor2.jpg";
             var pathTexturaPared = MediaDir + "brick1_1.jpg";
             var pathTexturaDeco = MediaDir + "cartelera2.jpg";
             var sizeDecoXY = new Vector3(300, 300, 0);
@@ -126,8 +126,10 @@ namespace TGC.Group.Model
             var cameraPosition = new Vector3(4850, 270, 220);
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
-            var moveSpeed = 500f;
-            var jumpSpeed = 200f;
+            var moveSpeed = 850f;
+            var jumpSpeed = 500f;
+
+            var esquletoSize = new Vector3(5,5,5);
 
             for (int i = 0; i < 10; i++)
             {
@@ -137,7 +139,9 @@ namespace TGC.Group.Model
                     //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
                     currentScene[i, j].Meshes[0].AutoTransformEnable = true;
                     //Desplazarlo
-                    currentScene[i, j].Meshes[0].move(512 * i + 256, 30, 512 * j + 256);
+                    currentScene[i, j].Meshes[0].move(512 * i + 256, 0, 512 * j + 256);
+                    currentScene[i, j].Meshes[0].Scale = esquletoSize;
+                    currentScene[i, j].Meshes[0].Rotation = new Vector3(0,random.Next(0,360),0);
                     skeletonsAp[i, j] = (random.Next(0, 10) < 6);
                 }
             }

@@ -34,16 +34,19 @@ namespace TGC.Group.Model
         private TgcScene[,] currentScene = new TgcScene[10, 10];
         private bool[,] skeletonsAp = new bool[10, 10];
         private TgcPlane Piso { get; set; }
-        private TgcPlane[] ParedXY = new TgcPlane[10];
-        private TgcPlane[] ParedNXY = new TgcPlane[10];
-        private TgcPlane[] ParedYZ = new TgcPlane[10];
-        private TgcPlane[] ParedNYZ = new TgcPlane[10];
+        private TgcBox[] ParedXY = new TgcBox[10];
+        private TgcBox[] ParedNXY = new TgcBox[10];
+        private TgcBox[] ParedYZ = new TgcBox[10];
+        private TgcBox[] ParedNYZ = new TgcBox[10];
         private TgcPlane[,] DecoWallXY = new TgcPlane[9, 10];
         private TgcPlane[,] DecoWallYZ = new TgcPlane[9, 10];
-        private TgcPlane[,] ParedInternaXY = new TgcPlane[9, 10];
-        private TgcPlane[,] ParedInternaYZ = new TgcPlane[9, 10];
+        private TgcBox[,] ParedInternaXY = new TgcBox[9, 10];
+        private TgcBox[,] ParedInternaYZ = new TgcBox[9, 10];
         private bool[,] wallMatXY = new bool[9, 10];
         private bool[,] wallMatYZ = new bool[9, 10];
+        private float anchoPared = 512;
+        private float altoPared = 512;
+        private float grosorPared = 50;
 
         //Caja que se muestra en el ejemplo.
         private TgcBox Box { get; set; }
@@ -67,9 +70,9 @@ namespace TGC.Group.Model
             var pathTexturaDeco = MediaDir + "cartelera2.jpg";
             var sizeDecoXY = new Vector3(300, 300, 0);
             var sizeDecoYZ = new Vector3(0, 300, 300);
-            var sizeParedXY = new Vector3(512, 512, 0);
-            var sizeParedYZ = new Vector3(0, 512, 512);
-            var sizePiso = new Vector3(5120, 0, 5120);
+            var sizeParedXY = new Vector3(anchoPared, altoPared, grosorPared);
+            var sizeParedYZ = new Vector3(grosorPared, altoPared, anchoPared);
+            var sizePiso = new Vector3(5120, 20, 5120);
             var relDecoPosXY = new Vector3(100, 100, 10);
             var relDecoPosYZ = new Vector3(10, 100, 100);
 
@@ -83,14 +86,18 @@ namespace TGC.Group.Model
             Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
             for (int i=0; i< 10; i++)
             {
-                var posXY = new Vector3(0 + i*512, 0, 0);
-                ParedXY[i] = new TgcPlane(posXY, sizeParedXY, TgcPlane.Orientations.XYplane, texturaPared);
-                var posNXY = new Vector3(0 + i * 512, 0, 5120);
-                ParedNXY[i] = new TgcPlane(posNXY, sizeParedXY, TgcPlane.Orientations.XYplane, texturaPared);
-                var posYZ = new Vector3(0, 0, 0 + i * 512);
-                ParedYZ[i] = new TgcPlane(posYZ, sizeParedYZ, TgcPlane.Orientations.YZplane, texturaPared);
-                var posNYZ = new Vector3(5120, 0, 0 + i * 512);
-                ParedNYZ[i] = new TgcPlane(posNYZ, sizeParedYZ, TgcPlane.Orientations.YZplane, texturaPared);
+                var posXY = new Vector3((i+0.5f)*anchoPared, 0.5f*altoPared, 0);
+                ParedXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
+                ParedXY[i].Position = posXY;
+                var posNXY = new Vector3((i + 0.5f) * anchoPared, 0.5f * altoPared, 10*anchoPared);
+                ParedNXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
+                ParedNXY[i].Position = posNXY;
+                var posYZ = new Vector3(0, 0.5f*altoPared, (i+0.5f)*anchoPared);
+                ParedYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
+                ParedYZ[i].Position =posYZ;
+                var posNYZ = new Vector3(10*anchoPared, 0.5f * altoPared, (i + 0.5f) * anchoPared);
+                ParedNYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
+                ParedNYZ[i].Position = posNYZ;
             }
 
             Random random = new Random();
@@ -98,11 +105,13 @@ namespace TGC.Group.Model
             {
                 for(int j = 0; j < 10; j++)
                 {
-                    var posXY = new Vector3(0 + i * 512, 0, 0 + j*512);
-                    ParedInternaXY[i-1, j] = new TgcPlane(posXY, sizeParedXY, TgcPlane.Orientations.XYplane, texturaPared);
+                    var posXY = new Vector3((i+.5f) * anchoPared , .5f*altoPared, j*anchoPared);
+                    ParedInternaXY[i-1, j] = TgcBox.fromSize(sizeParedXY, texturaPared);
+                    ParedInternaXY[i - 1, j].Position = posXY;
                     DecoWallXY[i - 1, j] = new TgcPlane(posXY+relDecoPosXY, sizeDecoXY, TgcPlane.Orientations.XYplane, texturaDeco);
-                    var posYZ = new Vector3(0 + j * 512, 0, 0 + i*512);
-                    ParedInternaYZ[i-1, j] = new TgcPlane(posYZ, sizeParedYZ, TgcPlane.Orientations.YZplane, texturaPared);
+                    var posYZ = new Vector3(j * anchoPared, .5f*altoPared, (i+.5f)*anchoPared);
+                    ParedInternaYZ[i-1, j] = TgcBox.fromSize(sizeParedYZ, texturaPared);
+                    ParedInternaYZ[i - 1, j].Position = posYZ;
                     DecoWallYZ[i - 1, j] = new TgcPlane(posYZ+relDecoPosYZ, sizeDecoYZ, TgcPlane.Orientations.YZplane, texturaDeco);
                     //generacion de valores para aparicion de paredes
                     int valR = random.Next(0, 10);
@@ -196,9 +205,13 @@ namespace TGC.Group.Model
             Piso.render();
             for (int i = 0; i < 10; i++)
             {
+                ParedXY[i].Transform = transformBox(ParedXY[i]);
                 ParedXY[i].render();
+                ParedNXY[i].Transform = transformBox(ParedNXY[i]);
                 ParedNXY[i].render();
+                ParedYZ[i].Transform = transformBox(ParedYZ[i]);
                 ParedYZ[i].render();
+                ParedNYZ[i].Transform = transformBox(ParedNYZ[i]);
                 ParedNYZ[i].render();
             }
             for (int i = 1; i < 10; i++)
@@ -207,13 +220,15 @@ namespace TGC.Group.Model
                 {
                     if (wallMatXY[i-1, j])
                     {
+                        ParedInternaXY[i - 1, j].Transform = transformBox(ParedInternaXY[i - 1, j]);
                         ParedInternaXY[i - 1, j].render();
-                        DecoWallXY[i - 1, j].render();
+                        //DecoWallXY[i - 1, j].render();
                     }
                     if (wallMatYZ[i-1, j])
                     {
+                        ParedInternaYZ[i - 1, j].Transform = transformBox(ParedInternaYZ[i - 1, j]);
                         ParedInternaYZ[i - 1, j].render();
-                        DecoWallYZ[i - 1, j].render();
+                        //DecoWallYZ[i - 1, j].render();
                     }
                 }
             }
@@ -277,6 +292,13 @@ namespace TGC.Group.Model
             var loader = new TgcSceneLoader();
             currentScene[i,j] = loader.loadSceneFromFile(path);
             
+        }
+
+        private Matrix transformBox(TgcBox aBox)
+        {
+            return Matrix.Scaling(aBox.Scale) *
+                            Matrix.RotationYawPitchRoll(aBox.Rotation.Y, aBox.Rotation.X, aBox.Rotation.Z) *
+                            Matrix.Translation(aBox.Position);
         }
     }
 }

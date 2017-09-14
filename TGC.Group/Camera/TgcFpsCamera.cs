@@ -29,6 +29,8 @@ namespace TGC.Group.Camera
         private float updownRot;
 
         private bool lockCam;
+
+        private bool fixCamY;
         private Vector3 positionEye;        
 
         public TgcFpsCamera(TgcD3dInput input)
@@ -59,11 +61,11 @@ namespace TGC.Group.Camera
             JumpSpeed = jumpSpeed;
         }
 
-        public TgcFpsCamera(Vector3 positionEye, float moveSpeed, float jumpSpeed, float rotationSpeed,
+        public TgcFpsCamera(Vector3 positionEye, float moveSpeed, float jumpSpeed, bool fixcam,
             TgcD3dInput input)
             : this(positionEye, moveSpeed, jumpSpeed, input)
         {
-            RotationSpeed = rotationSpeed;
+            fixCamY = fixcam;
         }
 
         private TgcD3dInput Input { get; }
@@ -142,7 +144,7 @@ namespace TGC.Group.Camera
             {
                 LockCam = !lockCam;
             }
-
+            var cameraRotationPos = new Matrix();
             //Solo rotar si se esta aprentando el boton izq del mouse
             if (lockCam || Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
@@ -150,13 +152,27 @@ namespace TGC.Group.Camera
                 updownRot -= Input.YposRelative * RotationSpeed;
                 //Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
                 cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
+                //se crea una camera rotation auxiliar para fijar la camara en una unica posicion Y
+                if (fixCamY) {
+                    cameraRotationPos = Matrix.RotationY(leftrightRot);
+                    //se elimina la dimension Y del moveVector para fijar la posicion de la camara en una unica dimension Y
+                    moveVector = new Vector3(moveVector.X, 0, moveVector.Z);
+
+                }
             }
 
             if (lockCam)
                 Cursor.Position = mouseCenter;
 
             //Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
-            var cameraRotatedPositionEye = Vector3.TransformNormal(moveVector * elapsedTime, cameraRotation);
+            var cameraRotatedPositionEye = new Vector3();
+            if (fixCamY)
+            {
+                cameraRotatedPositionEye = Vector3.TransformNormal(moveVector * elapsedTime, cameraRotationPos);
+            }
+            else {
+                cameraRotatedPositionEye = Vector3.TransformNormal(moveVector * elapsedTime, cameraRotation);
+            }
             positionEye += cameraRotatedPositionEye;
 
             //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.

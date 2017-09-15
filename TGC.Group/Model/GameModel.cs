@@ -31,19 +31,22 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
-        private TgcScene[,] currentScene = new TgcScene[10, 10];
-        private bool[,] skeletonsAp = new bool[10, 10];
+
+        private int paredesXY = 30;
+        private int paredesYZ = 30;
+        private TgcScene[,] currentScene;
+        private bool[,] skeletonsAp;
         private TgcPlane Piso { get; set; }
-        private TgcBox[] ParedXY = new TgcBox[10];
-        private TgcBox[] ParedNXY = new TgcBox[10];
-        private TgcBox[] ParedYZ = new TgcBox[10];
-        private TgcBox[] ParedNYZ = new TgcBox[10];
-        private TgcPlane[,] DecoWallXY = new TgcPlane[9, 10];
-        private TgcPlane[,] DecoWallYZ = new TgcPlane[9, 10];
-        private TgcBox[,] ParedInternaXY = new TgcBox[9, 10];
-        private TgcBox[,] ParedInternaYZ = new TgcBox[9, 10];
-        private bool[,] wallMatXY = new bool[9, 10];
-        private bool[,] wallMatYZ = new bool[9, 10];
+        private TgcBox[] ParedXY;
+        private TgcBox[] ParedNXY;
+        private TgcBox[] ParedYZ;
+        private TgcBox[] ParedNYZ;
+        private TgcPlane[,] DecoWallXY;
+        private TgcPlane[,] DecoWallYZ;
+        private TgcBox[,] ParedInternaXY;
+        private TgcBox[,] ParedInternaYZ;
+        private bool[,] wallMatXY;
+        private bool[,] wallMatYZ;
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
@@ -59,8 +62,21 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-            //Device de DirectX para crear primitivas.
-            var d3dDevice = D3DDevice.Instance.Device;
+            currentScene = new TgcScene[paredesXY, paredesYZ];
+            skeletonsAp = new bool[paredesXY, paredesYZ];
+            ParedXY = new TgcBox[paredesXY];
+            ParedNXY = new TgcBox[paredesXY];
+            ParedYZ = new TgcBox[paredesYZ];
+            ParedNYZ = new TgcBox[paredesYZ];
+            DecoWallXY = new TgcPlane[paredesXY -1, paredesXY];
+            DecoWallYZ = new TgcPlane[paredesYZ -1, paredesYZ];
+            ParedInternaXY = new TgcBox[paredesXY - 1, paredesXY];
+            ParedInternaYZ = new TgcBox[paredesYZ - 1, paredesYZ];
+            wallMatXY = new bool[paredesXY - 1, paredesXY];
+            wallMatYZ = new bool[paredesYZ - 1, paredesYZ];
+
+        //Device de DirectX para crear primitivas.
+        var d3dDevice = D3DDevice.Instance.Device;
             
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -72,7 +88,7 @@ namespace TGC.Group.Model
             var sizeDecoYZ = new Vector3(0, 300, 300);
             var sizeParedXY = new Vector3(anchoPared, altoPared, grosorPared);
             var sizeParedYZ = new Vector3(grosorPared, altoPared, anchoPared);
-            var sizePiso = new Vector3(5120, 20, 5120);
+            var sizePiso = new Vector3(512*paredesXY, 20, 512*paredesYZ);
             var relDecoPosXY = new Vector3(100, 100, 10);
             var relDecoPosYZ = new Vector3(10, 100, 100);
 
@@ -84,26 +100,29 @@ namespace TGC.Group.Model
             var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
 
             Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
-            for (int i=0; i< 10; i++)
+            for (int i=0; i< paredesXY; i++)
             {
                 var posXY = new Vector3((i+0.5f)*anchoPared, 0.5f*altoPared, 0);
                 ParedXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedXY[i].Position = posXY;
-                var posNXY = new Vector3((i + 0.5f) * anchoPared, 0.5f * altoPared, 10*anchoPared);
+                var posNXY = new Vector3((i + 0.5f) * anchoPared, 0.5f * altoPared, paredesXY*anchoPared);
                 ParedNXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedNXY[i].Position = posNXY;
-                var posYZ = new Vector3(0, 0.5f*altoPared, (i+0.5f)*anchoPared);
+            }
+            for (int i = 0; i < paredesYZ; i++)
+            {
+                var posYZ = new Vector3(0, 0.5f * altoPared, (i + 0.5f) * anchoPared);
                 ParedYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
-                ParedYZ[i].Position =posYZ;
-                var posNYZ = new Vector3(10*anchoPared, 0.5f * altoPared, (i + 0.5f) * anchoPared);
+                ParedYZ[i].Position = posYZ;
+                var posNYZ = new Vector3(paredesYZ * anchoPared, 0.5f * altoPared, (i + 0.5f) * anchoPared);
                 ParedNYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                 ParedNYZ[i].Position = posNYZ;
             }
 
             Random random = new Random();
-            for (int i = 1; i < 10; i++)
+            for (int i = 1; i < paredesXY; i++)
             {
-                for(int j = 0; j < 10; j++)
+                for(int j = 0; j < paredesYZ; j++)
                 {
                     var posXY = new Vector3((i+.5f) * anchoPared , .5f*altoPared, j*anchoPared);
                     ParedInternaXY[i-1, j] = TgcBox.fromSize(sizeParedXY, texturaPared);
@@ -140,9 +159,9 @@ namespace TGC.Group.Model
 
             var esquletoSize = new Vector3(5,5,5);
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < paredesXY; i++)
             {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < paredesYZ; j++)
                 {
                     loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml", i, j);
                     //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
@@ -203,20 +222,23 @@ namespace TGC.Group.Model
                 "Con clic izquierdo subimos la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
                 Color.OrangeRed);
             Piso.render();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < paredesXY; i++)
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);
                 ParedXY[i].render();
                 ParedNXY[i].Transform = transformBox(ParedNXY[i]);
                 ParedNXY[i].render();
+            }
+            for (int i = 0; i < paredesYZ; i++)
+            {
                 ParedYZ[i].Transform = transformBox(ParedYZ[i]);
                 ParedYZ[i].render();
                 ParedNYZ[i].Transform = transformBox(ParedNYZ[i]);
                 ParedNYZ[i].render();
             }
-            for (int i = 1; i < 10; i++)
+            for (int i = 1; i < paredesXY; i++)
             {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < paredesYZ; j++)
                 {
                     if (wallMatXY[i-1, j])
                     {
@@ -232,9 +254,9 @@ namespace TGC.Group.Model
                     }
                 }
             }
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < paredesXY; i++)
             {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < paredesYZ; j++)
                 {
                     if (skeletonsAp[i, j])
                     {
@@ -268,9 +290,9 @@ namespace TGC.Group.Model
         {
             //Dispose de la caja.
             Box.dispose();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < paredesXY; i++)
             {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < paredesYZ; j++)
                 {
                     currentScene[i, j].Meshes[0].dispose();
                 }

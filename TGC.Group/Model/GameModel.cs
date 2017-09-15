@@ -151,7 +151,7 @@ namespace TGC.Group.Model
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
-            var cameraPosition = new Vector3(4850, 270, 220);
+            var cameraPosition = new Vector3(4850, 200, 220);
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
             var moveSpeed = 850f;
@@ -174,7 +174,10 @@ namespace TGC.Group.Model
                 }
             }
 
-            Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, Input);
+            //fija la camara en la dimension Y en true. Por el momento si se activa no se puede saltar ni agacharse ( seria necesario en nuestro juego?)
+            var fixCamY = true;
+
+            Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, fixCamY, Input);
             //Configuro donde esta la posicion de la camara y hacia donde mira.
             //Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.

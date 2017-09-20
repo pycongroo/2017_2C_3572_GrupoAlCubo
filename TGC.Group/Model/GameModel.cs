@@ -37,6 +37,7 @@ namespace TGC.Group.Model
         private TgcScene[,] currentScene;
         private bool[,] skeletonsAp;
         private TgcPlane Piso { get; set; }
+        private TgcPlane Techo { get; set; }
         private TgcBox[] ParedXY;
         private TgcBox[] ParedNXY;
         private TgcBox[] ParedYZ;
@@ -96,10 +97,12 @@ namespace TGC.Group.Model
             //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
             var texture = TgcTexture.createTexture(pathTexturaCaja);
             var texturePiso = TgcTexture.createTexture(pathTexturaPiso);
+            var texturaTecho = TgcTexture.createTexture(pathTexturaPiso);
             var texturaPared = TgcTexture.createTexture(pathTexturaPared);
             var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
 
             Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
+            Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
             for (int i=0; i< paredesXY; i++)
             {
                 var posXY = new Vector3((i+0.5f)*anchoPared, 0.5f*altoPared, 0);
@@ -175,7 +178,7 @@ namespace TGC.Group.Model
             }
 
             //fija la camara en la dimension Y en true. Por el momento si se activa no se puede saltar ni agacharse ( seria necesario en nuestro juego?)
-            var fixCamY = true;
+            var fixCamY = false;
 
             Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, fixCamY, Input);
             //Configuro donde esta la posicion de la camara y hacia donde mira.
@@ -225,6 +228,7 @@ namespace TGC.Group.Model
                 "Con clic izquierdo subimos la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
                 Color.OrangeRed);
             Piso.render();
+            Techo.render();
             for (int i = 0; i < paredesXY; i++)
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);

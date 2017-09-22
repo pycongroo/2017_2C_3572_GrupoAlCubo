@@ -32,12 +32,13 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        private int paredesXY = 30;
-        private int paredesYZ = 30;
+        private int paredesXY = 20;
+        private int paredesYZ = 20;
         private TgcScene[,] currentScene;
         private bool[,] skeletonsAp;
         private TgcPlane Piso { get; set; }
         private TgcPlane Techo { get; set; }
+        private TgcBox playerBBox { get; set; }
         private TgcBox[] ParedXY;
         private TgcBox[] ParedNXY;
         private TgcBox[] ParedYZ;
@@ -51,6 +52,7 @@ namespace TGC.Group.Model
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
+        //private TgcArrow lookingArrow { get; set; }
 
         //Caja que se muestra en el ejemplo.
         private TgcBox Box { get; set; }
@@ -75,7 +77,7 @@ namespace TGC.Group.Model
             ParedInternaYZ = new TgcBox[paredesYZ - 1, paredesYZ];
             wallMatXY = new bool[paredesXY - 1, paredesXY];
             wallMatYZ = new bool[paredesYZ - 1, paredesYZ];
-
+            //playerBBox = new TgcSphere(125,texturapiso,new Vector3(0,0,0));
         //Device de DirectX para crear primitivas.
         var d3dDevice = D3DDevice.Instance.Device;
             
@@ -121,7 +123,6 @@ namespace TGC.Group.Model
                 ParedNYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                 ParedNYZ[i].Position = posNYZ;
             }
-
             Random random = new Random();
             for (int i = 1; i < paredesXY; i++)
             {
@@ -155,6 +156,9 @@ namespace TGC.Group.Model
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
             var cameraPosition = new Vector3(4850, 200, 220);
+            //playerBBox.Position = cameraPosition;
+            playerBBox = new TgcBox();
+            playerBBox = TgcBox.fromSize(cameraPosition, new Vector3(25,25,25));
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
             var moveSpeed = 850f;
@@ -173,12 +177,12 @@ namespace TGC.Group.Model
                     currentScene[i, j].Meshes[0].move(512 * i + 256, 0, 512 * j + 256);
                     currentScene[i, j].Meshes[0].Scale = esquletoSize;
                     currentScene[i, j].Meshes[0].Rotation = new Vector3(0,random.Next(0,360),0);
-                    skeletonsAp[i, j] = (random.Next(0, 10) < 6);
+                    skeletonsAp[i, j] = (random.Next(0, 10) < 2);
                 }
             }
 
             //fija la camara en la dimension Y en true. Por el momento si se activa no se puede saltar ni agacharse ( seria necesario en nuestro juego?)
-            var fixCamY = false;
+            var fixCamY = true;
 
             Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, fixCamY, Input);
             //Configuro donde esta la posicion de la camara y hacia donde mira.
@@ -195,6 +199,20 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
+
+            var currentCameraPos = Camara.Position;
+            playerBBox.Position = currentCameraPos;
+            
+            //for(var i = 0; i < 4; i++) {
+                if (intersectBtoB(playerBBox, ParedInternaXY[0, 0])) { 
+                
+                            currentCameraPos.X += 50;
+                        
+                    Camara.SetCamera(currentCameraPos,Camara.LookAt, Camara.UpVector);
+                    //playerBBox.Position = currentCameraPos;
+                }
+            //}
+            
 
             //Capturar Input Mouse
             /*if (Input.buttonUp(Core.Input.TgcD3dInput.MouseButtons.BUTTON_LEFT))
@@ -272,6 +290,7 @@ namespace TGC.Group.Model
                     }
                 }
             }
+
             //Piso2.render();
             //Piso3.render();
             //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
@@ -279,9 +298,16 @@ namespace TGC.Group.Model
             Box.Transform = Matrix.Scaling(Box.Scale) *
                             Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
                             Matrix.Translation(Box.Position);
+            playerBBox.Transform = transformBox(playerBBox);
+           /* playerBBox.Transform = Matrix.Scaling(Box.Scale) *
+                            Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
+                            Matrix.Translation(Box.Position);-*/
+            playerBBox.BoundingBox.render();
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
             Box.render();
+            Box.BoundingBox.render();
+             
             //currentScene.Meshes[0].render();
             
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
@@ -297,13 +323,31 @@ namespace TGC.Group.Model
         {
             //Dispose de la caja.
             Box.dispose();
-            for (int i = 0; i < paredesXY; i++)
+            playerBBox.dispose();
+
+            /*for (int i = 1; i < paredesXY; i++)
             {
                 for (int j = 0; j < paredesYZ; j++)
                 {
-                    currentScene[i, j].Meshes[0].dispose();
+                    if (wallMatXY[i - 1, j])
+                    {
+                        ParedInternaXY[i - 1, j].dispose();
+                    }
+                    if (wallMatYZ[i - 1, j])
+                    {
+                        ParedInternaYZ[i - 1, j].dispose();
+                    }
                 }
-            }
+            }*/
+
+                        for (int i = 0; i < paredesXY; i++)
+                        {
+                            for (int j = 0; j < paredesYZ; j++)
+                            {
+                                currentScene[i, j].Meshes[0].dispose();
+                            }
+                        }
+
         }
 
         /// <summary>
@@ -328,6 +372,38 @@ namespace TGC.Group.Model
             return Matrix.Scaling(aBox.Scale) *
                             Matrix.RotationYawPitchRoll(aBox.Rotation.Y, aBox.Rotation.X, aBox.Rotation.Z) *
                             Matrix.Translation(aBox.Position);
+        }
+
+        private Matrix transformSpehre( TgcSphere aBox)
+        {
+            return Matrix.Scaling(aBox.Scale) *
+                             Matrix.RotationYawPitchRoll(aBox.Rotation.Y, aBox.Rotation.X, aBox.Rotation.Z) *
+                             Matrix.Translation(aBox.Position);
+        }
+
+        private Boolean intersectStoB(TgcSphere sphere, TgcBox box)
+        {
+            var bbox = box.BoundingBox;
+            var bsphere = sphere.BoundingSphere;
+            //punto mas cercano al centro de la esfera
+            var x = Math.Max(bbox.PMin.X, Math.Min(bsphere.Center.X, bbox.PMax.X));
+            var y = Math.Max(bbox.PMin.Y, Math.Min(bsphere.Center.Y, bbox.PMax.Y));
+            var z = Math.Max(bbox.PMin.Z, Math.Min(bsphere.Center.Z, bbox.PMax.Z));
+
+            //verificar si el punto esta dentro de la esfera
+            var distance = Math.Sqrt((x - bsphere.Center.X) * (x - bsphere.Center.X) +
+                                     (y - bsphere.Center.Y) * (y - bsphere.Center.Y) +
+                                     (z - bsphere.Center.Z) * (z - bsphere.Center.Z));
+            return distance < bsphere.Radius;
+        }
+
+        private Boolean intersectBtoB(TgcBox boxA, TgcBox boxB)
+        {
+            var a = boxA.BoundingBox;
+            var b = boxB.BoundingBox;
+            return ((a.PMin.X <= b.PMax.X && a.PMax.X >= b.PMin.X) &&
+                   (a.PMin.Y <= b.PMax.Y && a.PMax.Y >= b.PMin.Y) &&
+                   (a.PMin.Z <= b.PMax.Z && a.PMax.Z >= b.PMin.Z));
         }
     }
 }

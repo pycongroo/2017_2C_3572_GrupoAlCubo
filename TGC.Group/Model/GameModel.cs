@@ -9,6 +9,8 @@ using TGC.Core.Utils;
 using TGC.Core.Example;
 using TGC.Group.Camera;
 using System;
+using System.Collections.Generic;
+using TGC.Core.Collision;
 
 namespace TGC.Group.Model
 {
@@ -52,6 +54,8 @@ namespace TGC.Group.Model
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
+        private List<TgcBox> obstaculos;
+        private bool collide;
         //private TgcArrow lookingArrow { get; set; }
 
         //Caja que se muestra en el ejemplo.
@@ -65,6 +69,8 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
+            obstaculos = new List<TgcBox>();
+            collide = false;
             currentScene = new TgcScene[paredesXY, paredesYZ];
             skeletonsAp = new bool[paredesXY, paredesYZ];
             ParedXY = new TgcBox[paredesXY];
@@ -110,18 +116,22 @@ namespace TGC.Group.Model
                 var posXY = new Vector3((i+0.5f)*anchoPared, 0.5f*altoPared, 0);
                 ParedXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedXY[i].Position = posXY;
+                obstaculos.Add(ParedXY[i]);
                 var posNXY = new Vector3((i + 0.5f) * anchoPared, 0.5f * altoPared, paredesXY*anchoPared);
                 ParedNXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedNXY[i].Position = posNXY;
+                obstaculos.Add(ParedNXY[i]);
             }
             for (int i = 0; i < paredesYZ; i++)
             {
                 var posYZ = new Vector3(0, 0.5f * altoPared, (i + 0.5f) * anchoPared);
                 ParedYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                 ParedYZ[i].Position = posYZ;
+                obstaculos.Add(ParedYZ[i]);
                 var posNYZ = new Vector3(paredesYZ * anchoPared, 0.5f * altoPared, (i + 0.5f) * anchoPared);
                 ParedNYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                 ParedNYZ[i].Position = posNYZ;
+                obstaculos.Add(ParedNYZ[i]);
             }
             Random random = new Random();
             for (int i = 1; i < paredesXY; i++)
@@ -131,10 +141,12 @@ namespace TGC.Group.Model
                     var posXY = new Vector3((i+.5f) * anchoPared , .5f*altoPared, j*anchoPared);
                     ParedInternaXY[i-1, j] = TgcBox.fromSize(sizeParedXY, texturaPared);
                     ParedInternaXY[i - 1, j].Position = posXY;
+                    obstaculos.Add(ParedInternaXY[i - 1, j]);
                     DecoWallXY[i - 1, j] = new TgcPlane(posXY+relDecoPosXY, sizeDecoXY, TgcPlane.Orientations.XYplane, texturaDeco);
                     var posYZ = new Vector3(j * anchoPared, .5f*altoPared, (i+.5f)*anchoPared);
                     ParedInternaYZ[i-1, j] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                     ParedInternaYZ[i - 1, j].Position = posYZ;
+                    obstaculos.Add(ParedInternaYZ[i - 1, j]);
                     DecoWallYZ[i - 1, j] = new TgcPlane(posYZ+relDecoPosYZ, sizeDecoYZ, TgcPlane.Orientations.YZplane, texturaDeco);
                     //generacion de valores para aparicion de paredes
                     int valR = random.Next(0, 10);
@@ -200,19 +212,120 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
-            var currentCameraPos = Camara.Position;
-            playerBBox.Position = currentCameraPos;
+            //var currentCameraPos = Camara.Position;
+            //playerBBox.Position = currentCameraPos;
             
-            //for(var i = 0; i < 4; i++) {
-                if (intersectBtoB(playerBBox, ParedInternaXY[0, 0])) { 
+            ////for(var i = 0; i < 4; i++) {
+            //    if (intersectBtoB(playerBBox, ParedInternaXY[0, 0])) { 
                 
-                            currentCameraPos.X += 50;
+            //                currentCameraPos.X += 50;
                         
-                    Camara.SetCamera(currentCameraPos,Camara.LookAt, Camara.UpVector);
-                    //playerBBox.Position = currentCameraPos;
-                }
-            //}
+            //        Camara.SetCamera(currentCameraPos,Camara.LookAt, Camara.UpVector);
+            //        //playerBBox.Position = currentCameraPos;
+            //    }
+            ////}
             
+            var velocidadCaminar = 400f;
+            var velocidadRotacion = 120f;
+
+            //Calcular proxima posicion de personaje segun Input
+            var moveForward = 0f;
+            var relPosX = new Vector3(0, 0, 0);
+            var relPosY = new Vector3(0, 0, 0);
+            var moveSideRight = 0f;
+            float rotate = 0;
+            var moving = false;
+
+            //Adelante
+            if (Input.keyDown(Key.W))
+            {
+                moveForward = -velocidadCaminar;
+                relPosX = new Vector3(-velocidadCaminar, 0, 0);
+                moving = true;
+            }
+
+            //Atras
+            if (Input.keyDown(Key.S))
+            {
+                moveForward = velocidadCaminar;
+                relPosX = new Vector3(velocidadCaminar, 0, 0);
+                moving = true;
+            }
+
+            //Derecha
+            if (Input.keyDown(Key.D))
+            {
+                moveSideRight = velocidadCaminar;
+                relPosY = new Vector3(0, 0, -velocidadCaminar);
+                moving = true;
+            }
+
+            //Izquierda
+            if (Input.keyDown(Key.A))
+            {
+                moveSideRight = -velocidadCaminar;
+                relPosY = new Vector3(0, 0, velocidadCaminar);
+                moving = true;
+            }
+
+            //Si hubo rotacion
+            //if (rotating)
+            //{
+            //    //Rotar personaje y la camara, hay que multiplicarlo por el tiempo transcurrido para no atarse a la velocidad el hardware
+            //    var rotAngle = Geometry.DegreeToRadian(rotate * ElapsedTime);
+            //    personaje.rotateY(rotAngle);
+            //    camaraInterna.rotateY(rotAngle);
+            //}
+
+            //Si hubo desplazamiento
+            if (moving)
+            {
+                //Activar animacion de caminando
+                //personaje.playAnimation("Caminando", true);
+
+                //Aplicar movimiento hacia adelante o atras segun la orientacion actual del Mesh
+                var lastPos = playerBBox.Position;
+
+                //La velocidad de movimiento tiene que multiplicarse por el elapsedTime para hacerse independiente de la velocida de CPU
+                //Ver Unidad 2: Ciclo acoplado vs ciclo desacoplado
+                //playerBBox.moveOrientedY(moveForward * ElapsedTime);
+                playerBBox.Position += relPosX * ElapsedTime;
+                playerBBox.Position += relPosY * ElapsedTime;
+
+                //Detectar colisiones
+                var collide = false;
+                foreach (var obstaculo in obstaculos)
+                {
+                    var result = TgcCollisionUtils.classifyBoxBox(playerBBox.BoundingBox, obstaculo.BoundingBox);
+                    if (result == TgcCollisionUtils.BoxBoxResult.Adentro ||
+                        result == TgcCollisionUtils.BoxBoxResult.Atravesando)
+                    {
+                        collide = true;
+                        break;
+                    }
+                }
+
+                //Si hubo colision, restaurar la posicion anterior
+                if (collide)
+                {
+                    playerBBox.Position = lastPos;
+                }
+
+                //Hacer que la camara siga al personaje en su nueva posicion
+                //camaraInterna.Target = personaje.Position;
+            }
+
+            //Si no se esta moviendo, activar animacion de Parado
+            else
+            {
+                //personaje.playAnimation("Parado", true);
+            }
+            
+            //Ajustar la posicion de la camara segun la colision con los objetos del escenario
+            //ajustarPosicionDeCamara();
+
+
+
 
             //Capturar Input Mouse
             /*if (Input.buttonUp(Core.Input.TgcD3dInput.MouseButtons.BUTTON_LEFT))

@@ -56,6 +56,7 @@ namespace TGC.Group.Model
         private float grosorPared = 50;
         private List<TgcBox> obstaculos;
         private bool collide;
+        private Random random;
         //private TgcArrow lookingArrow { get; set; }
 
         //Caja que se muestra en el ejemplo.
@@ -133,7 +134,7 @@ namespace TGC.Group.Model
                 ParedNYZ[i].Position = posNYZ;
                 obstaculos.Add(ParedNYZ[i]);
             }
-            Random random = new Random();
+            random = new Random();
             for (int i = 1; i < paredesXY; i++)
             {
                 for(int j = 0; j < paredesYZ; j++)
@@ -141,27 +142,33 @@ namespace TGC.Group.Model
                     var posXY = new Vector3((i+.5f) * anchoPared , .5f*altoPared, j*anchoPared);
                     ParedInternaXY[i-1, j] = TgcBox.fromSize(sizeParedXY, texturaPared);
                     ParedInternaXY[i - 1, j].Position = posXY;
-                    obstaculos.Add(ParedInternaXY[i - 1, j]);
-                    DecoWallXY[i - 1, j] = new TgcPlane(posXY+relDecoPosXY, sizeDecoXY, TgcPlane.Orientations.XYplane, texturaDeco);
+                    wallMatXY[i - 1, j] = false;
+                    //obstaculos.Add(ParedInternaXY[i - 1, j]);
+                    //DecoWallXY[i - 1, j] = new TgcPlane(posXY+relDecoPosXY, sizeDecoXY, TgcPlane.Orientations.XYplane, texturaDeco);
                     var posYZ = new Vector3(j * anchoPared, .5f*altoPared, (i+.5f)*anchoPared);
                     ParedInternaYZ[i-1, j] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                     ParedInternaYZ[i - 1, j].Position = posYZ;
-                    obstaculos.Add(ParedInternaYZ[i - 1, j]);
-                    DecoWallYZ[i - 1, j] = new TgcPlane(posYZ+relDecoPosYZ, sizeDecoYZ, TgcPlane.Orientations.YZplane, texturaDeco);
-                    //generacion de valores para aparicion de paredes
-                    int valR = random.Next(0, 10);
-                    wallMatXY[i-1, j] = (valR < 7);
-                    valR = random.Next(0, 10);
-                    wallMatYZ[i-1, j] = (valR < 7);
+                    wallMatYZ[i - 1, j] = false; 
+                    //obstaculos.Add(ParedInternaYZ[i - 1, j]);
+                    //DecoWallYZ[i - 1, j] = new TgcPlane(posYZ+relDecoPosYZ, sizeDecoYZ, TgcPlane.Orientations.YZplane, texturaDeco);
+                    ////generacion de valores para aparicion de paredes
+                    //int valR = random.Next(0, 10);
+                    //wallMatXY[i-1, j] = (valR < 7);
+                    //valR = random.Next(0, 10);
+                    //wallMatYZ[i-1, j] = (valR < 7);
                 }
             }
+            int posX = paredesXY / 2;
+            int posZ = paredesYZ / 2;
+            int cant = paredesXY;
+            genLab(posX, posZ, cant);
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
             Box = TgcBox.fromSize(size, texture);
             //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
             //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new Vector3(50, 50, 50);
+            Box.Position = new Vector3(5120, 100, 5120);
             
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
@@ -201,6 +208,50 @@ namespace TGC.Group.Model
             //Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+        }
+
+        private void genLab(int posX, int posZ, int len)
+        {
+            if (len > 1)
+            {
+                Console.WriteLine("genero Lab");
+                Console.WriteLine("Values: \nposX:"+ posX+"\nposZ:"+posZ+"\nlen:"+len);
+                if (random.Next(0, 2) == 1)
+                {
+                    Console.WriteLine("Doble Z");
+                    int rn;
+                    Console.WriteLine("rango X: (" + (posZ -1 - len / 2) +", " +(posZ) + ")");
+                    rn = random.Next(posZ -1 - len / 2, posZ - 1);
+                    Console.WriteLine("RN X: (" + posX + ", " + rn + ")");
+                    wallMatYZ[rn, posX] = true;
+                    Console.WriteLine("Rango Z: (" + (posX -1 - len / 2) + ", " + (posX) + ")");
+                    rn = random.Next(posX -1 - len / 2, posX - 1);
+                    Console.WriteLine("RN Z: (" + posZ + ", " + rn + ")");
+                    wallMatXY[rn, posZ] = true;
+                    Console.WriteLine("Rango Z: (" + (posX) + ", " + (posX + len/2) + ")");
+                    rn = random.Next(posX, posX + len / 2);
+                    Console.WriteLine("RN Z: (" + posZ + ", " + rn + ")");
+                    wallMatXY[rn, posZ] = true;
+                }
+                else
+                {
+                    Console.WriteLine("Doble X");
+                    int rn;
+                    Console.WriteLine("Rango Z: (" + (posX -1 - len / 2) +", "+ (posX)+")");
+                    rn = random.Next(posX -1 - len / 2, posX);
+                    Console.WriteLine("RN X: (" + posZ + ", "+ rn + ")");
+                    wallMatXY[rn, posZ] = true;
+                    Console.WriteLine("rango X: (" + (posZ - len / 2) + ", " + (posZ)+")");
+                    rn = random.Next(posZ -1 - len / 2, posZ);
+                    Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                    wallMatYZ[rn, posX] = true;
+                    Console.WriteLine("rango X: (" + (posZ) + ", " + (posZ + len/2)+")");
+                    rn = random.Next(posZ, posZ + len / 2);
+                    Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                    wallMatYZ[rn ,posX] = true;
+                }
+                Console.WriteLine("Fin Lab");
+            }
         }
 
         /// <summary>

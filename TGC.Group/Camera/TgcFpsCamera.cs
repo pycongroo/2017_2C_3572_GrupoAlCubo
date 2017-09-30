@@ -31,7 +31,9 @@ namespace TGC.Group.Camera
         private bool lockCam;
 
         private bool fixCamY;
-        private Vector3 positionEye;        
+        private Vector3 positionEye;
+        private bool collision = false;
+        private Vector3 lastMovPos;
 
         public TgcFpsCamera(TgcD3dInput input)
         {
@@ -182,7 +184,10 @@ namespace TGC.Group.Camera
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
 
+            if (collision) positionEye = lastMovPos;
+
             base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
+            
         }
 
         /// <summary>
@@ -195,5 +200,12 @@ namespace TGC.Group.Camera
             positionEye = position;
             this.directionView = directionView;
         }
+
+        public void UpdateCollision(bool value, Vector3 lastpos)
+        {
+            collision = value;
+            lastMovPos = lastpos;
+        }
+
     }
 }

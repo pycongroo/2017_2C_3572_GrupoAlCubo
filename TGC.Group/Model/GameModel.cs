@@ -57,8 +57,9 @@ namespace TGC.Group.Model
         private List<TgcBox> obstaculos;
         private bool collide;
         private Random random;
+        //booleanos para pruebas
         private bool bTrue = true;
-        private bool bFalse = true;
+        private bool bFalse = false;
         //private TgcArrow lookingArrow { get; set; }
 
         //Caja que se muestra en el ejemplo.
@@ -141,42 +142,34 @@ namespace TGC.Group.Model
             {
                 for(int j = 0; j < paredesYZ; j++)
                 {
-                    var posXY = new Vector3((i+.5f) * anchoPared , .5f*altoPared, j*anchoPared);
+                    var posXY = new Vector3((j + .5f) * anchoPared, .5f * altoPared, i * anchoPared); 
                     ParedInternaXY[i-1, j] = TgcBox.fromSize(sizeParedXY, texturaPared);
                     ParedInternaXY[i - 1, j].Position = posXY;
                     wallMatXY[i - 1, j] = bTrue;
-                    //obstaculos.Add(ParedInternaXY[i - 1, j]);
-                    //DecoWallXY[i - 1, j] = new TgcPlane(posXY+relDecoPosXY, sizeDecoXY, TgcPlane.Orientations.XYplane, texturaDeco);
-                    var posYZ = new Vector3(j * anchoPared, .5f*altoPared, (i+.5f)*anchoPared);
+                    var posYZ = new Vector3(i* anchoPared, .5f * altoPared, (j+.5f) * anchoPared);
                     ParedInternaYZ[i-1, j] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                     ParedInternaYZ[i - 1, j].Position = posYZ;
-                    wallMatYZ[i - 1, j] = bTrue; 
-                    //obstaculos.Add(ParedInternaYZ[i - 1, j]);
-                    //DecoWallYZ[i - 1, j] = new TgcPlane(posYZ+relDecoPosYZ, sizeDecoYZ, TgcPlane.Orientations.YZplane, texturaDeco);
-                    ////generacion de valores para aparicion de paredes
-                    //int valR = random.Next(0, 10);
-                    //wallMatXY[i-1, j] = (valR < 7);
-                    //valR = random.Next(0, 10);
-                    //wallMatYZ[i-1, j] = (valR < 7);
+                    wallMatYZ[i - 1, j] = bTrue;
                 }
             }
             int posX = paredesXY / 2;
             int posZ = paredesYZ / 2;
             int cant = paredesXY;
-            genLab(posX, posZ, cant);
+            Console.WriteLine("PRE GEN: \nposX:" + posX + "\nposZ:" + posZ + "\nlen:" + cant);
+            genLab(posX -1, posZ -1, cant);
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
             Box = TgcBox.fromSize(size, texture);
             //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
             //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new Vector3(5120, 100, 5120);
+            Box.Position = new Vector3(512 * posX, 100, 512 * posZ);
             
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
-            var cameraPosition = new Vector3(4850, 200, 220);
+            var cameraPosition = new Vector3(0, 200, 220);
             //playerBBox.Position = cameraPosition;
             playerBBox = new TgcBox();
             playerBBox = TgcBox.fromSize(cameraPosition, new Vector3(25,25,25));
@@ -214,49 +207,172 @@ namespace TGC.Group.Model
 
         private void genLab(int posX, int posZ, int len)
         {
+            Console.WriteLine("Values: \nposX:" + posX + "\nposZ:" + posZ + "\nlen:" + len);
+            int rn;
             if (len > 2)
             {
                 Console.WriteLine("genero Lab");
-                Console.WriteLine("Values: \nposX:"+ posX+"\nposZ:"+posZ+"\nlen:"+len);
+                //Console.WriteLine("Values: \nposX:"+ posX+"\nposZ:"+posZ+"\nlen:"+len);
                 if (random.Next(0, 2) == 1)
-                {
+                {   
                     Console.WriteLine("Doble Z");
-                    int rn;
-                    Console.WriteLine("rango X: (" + (posZ - len / 2) +", " +(posZ) + ")");
-                    rn = random.Next(posZ - len / 2, posZ - 1);
-                    Console.WriteLine("RN X: (" + posX + ", " + rn + ")");
-                    wallMatYZ[rn, posX] = bFalse;
-                    Console.WriteLine("Rango Z: (" + (posX - len / 2) + ", " + (posX) + ")");
-                    rn = random.Next(posX - len / 2, posX - 1);
-                    Console.WriteLine("RN Z: (" + posZ + ", " + rn + ")");
-                    wallMatXY[rn, posZ] = bFalse;
-                    Console.WriteLine("Rango Z: (" + (posX) + ", " + (posX - 2 + len/2) + ")");
-                    rn = random.Next(posX, posX - 2 + len / 2);
-                    Console.WriteLine("RN Z: (" + posZ + ", " + rn + ")");
-                    wallMatXY[rn, posZ] = bFalse;
+                    if (random.Next(0, 2) == 0)
+                    {
+                        Console.WriteLine("rango X: (" + (posX + 1 - len / 2) + ", " + (posX + 1) + ")");
+                        rn = random.Next(posX + 1 - len / 2, posX + 1);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ + 1, rn].Position);
+                    } else
+                    {
+                        Console.WriteLine("rango X: (" + (posX + 1) + ", " + (posX + 1 + len/2) + ")");
+                        rn = random.Next(posX + 1, posX + 1 + len/2);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ, rn].Position);
+                    }
+                    Console.WriteLine("Rango Z: (" + (posZ +1 - len / 2) + ", " + (posZ+1) + ")");
+                    rn = random.Next(posX +1 - len / 2, posX + 1);
+                    Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                    wallMatXY[posX ,rn] = bFalse;
+                    //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                    Console.WriteLine("Rango Z: (" + (posZ + 1) + ", " + (posZ + 1 + len/2) + ")");
+                    rn = random.Next(posX + 1, posX + 1 + len/2);
+                    Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                    wallMatXY[posX, rn] = bFalse;
+                    //Console.WriteLine(ParedInternaXY[posX, rn].Position);
                 }
                 else
                 {
                     Console.WriteLine("Doble X");
-                    int rn;
-                    Console.WriteLine("Rango Z: (" + (posX - len / 2) +", "+ (posX)+")");
-                    rn = random.Next(posX - len / 2, posX);
-                    Console.WriteLine("RN X: (" + posZ + ", "+ rn + ")");
-                    wallMatXY[rn, posZ] = bFalse;
-                    Console.WriteLine("rango X: (" + (posZ - len / 2) + ", " + (posZ)+")");
-                    rn = random.Next(posZ - len / 2, posZ);
-                    Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
-                    wallMatYZ[rn, posX] = bFalse;
-                    Console.WriteLine("rango X: (" + (posZ) + ", " + (posZ -2 + len/2)+")");
-                    rn = random.Next(posZ, posZ - 2 + len / 2);
-                    Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
-                    wallMatYZ[rn ,posX] = bFalse;
+                    if (random.Next(0, 2)==0)
+                    {
+                        Console.WriteLine("Rango Z: (" + (posZ + 1 - len / 2) + ", " + (posZ + 1) + ")");
+                        rn = random.Next(posX + 1 - len / 2, posX + 1);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                    } else
+                    {
+                        Console.WriteLine("Rango Z: (" + (posZ + 1) + ", " + (posZ + 1 + len/2) + ")");
+                        rn = random.Next(posX + 1, posX + 1 + len/2);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                    }
+                    Console.WriteLine("rango X: (" + (posX + 1 - len / 2) + ", " + (posX + 1) + ")");
+                    rn = random.Next(posX + 1 - len / 2, posX + 1);
+                    Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                    wallMatYZ[posZ, rn] = bFalse;
+                    //Console.WriteLine(ParedInternaYZ[posZ, rn].Position);
+                    Console.WriteLine("rango X: (" + (posX + 1) + ", " + (posX + 1 + len/2) + ")");
+                    rn = random.Next(posX + 1, posX + 1 + len / 2);
+                    Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                    wallMatYZ[posZ, rn] = bFalse;
+                    //Console.WriteLine(ParedInternaYZ[posZ, rn].Position);
                 }
-                genLab(posX + len / 4, posZ + len / 4, len / 2);
-                genLab(posX + len / 4, posZ - len / 4, len / 2);
-                genLab(posX - len / 4, posZ + len / 4, len / 2);
-                genLab(posX - len / 4, posZ - len / 4, len / 2);
+                Console.WriteLine("************************");
+                int nextX = posX;
+                int nextZ = posZ;
+                //Console.WriteLine("PRE SUB GEN: \nnextX:" + (nextX + len / 4) + "\nnextZ:" + (nextZ + len / 4) + "\nlen:" + len/2);
+                genLab(nextX + len / 4, nextZ + len / 4, len / 2);
+                //Console.WriteLine("PRE SUB GEN: \nnextX:" + (nextX + len / 4) + "\nnextZ:" + (nextZ - len / 4) + "\nlen:" + len / 2);
+                genLab(nextX + len / 4, nextZ - len / 4, len / 2);
+                //Console.WriteLine("PRE SUB GEN: \nnextX:" + (nextX - len / 4) + "\nnextZ:" + (nextZ + len / 4) + "\nlen:" + len / 2);
+                genLab(nextX - len / 4, nextZ + len / 4, len / 2);
+                //Console.WriteLine("PRE SUB GEN: \nnextX:" + (nextX - len / 4) + "\nnextZ:" + (nextZ - len / 4) + "\nlen:" + len / 2);
+                genLab(nextX - len / 4, nextZ - len / 4, len / 2);
                 Console.WriteLine("Fin Lab");
+            } else
+            {
+                switch (random.Next(0, 4))
+                {
+                    case 0:
+                        Console.WriteLine("Caso 0");
+                        //0
+                        Console.WriteLine("rango X: (" + (posX + 1 - len / 2) + ", " + (posX + 1) + ")");
+                        rn = random.Next(posX + 1 - len / 2, posX + 1);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ + 1, rn].Position);
+                        //1
+                        Console.WriteLine("rango X: (" + (posX + 1) + ", " + (posX + 1 + len / 2) + ")");
+                        rn = random.Next(posX + 1, posX + 1 + len / 2);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ, rn].Position);
+                        //2
+                        Console.WriteLine("Rango Z: (" + (posZ + 1 - len / 2) + ", " + (posZ + 1) + ")");
+                        rn = random.Next(posZ + 1 - len / 2, posZ + 1);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                        break;
+                    case 1:
+                        Console.WriteLine("Caso 1");
+                        //1
+                        Console.WriteLine("rango X: (" + (posX + 1) + ", " + (posX + 1 + len / 2) + ")");
+                        rn = random.Next(posX + 1, posX + 1 + len / 2);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ, rn].Position);
+                        //2
+                        Console.WriteLine("Rango Z: (" + (posZ + 1 - len / 2) + ", " + (posZ + 1) + ")");
+                        rn = random.Next(posZ + 1 - len / 2, posZ + 1);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                        //3
+                        Console.WriteLine("Rango Z: (" + (posZ + 1) + ", " + (posZ + 1 + len / 2) + ")");
+                        rn = random.Next(posZ + 1, posZ + 1 + len / 2);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                        break;
+                    case 2:
+                        Console.WriteLine("Caso 2");
+                        //0
+                        Console.WriteLine("rango X: (" + (posX + 1 - len / 2) + ", " + (posX + 1) + ")");
+                        rn = random.Next(posX + 1 - len / 2, posX + 1);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ, rn].Position);
+                        //2
+                        Console.WriteLine("Rango Z: (" + (posZ + 1 - len / 2) + ", " + (posZ + 1) + ")");
+                        rn = random.Next(posZ + 1 - len / 2, posZ + 1);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                        //3
+                        Console.WriteLine("Rango Z: (" + (posZ + 1) + ", " + (posZ + 1 + len / 2) + ")");
+                        rn = random.Next(posZ + 1, posZ + 1 + len / 2);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                        break;
+                    case 3:
+                        Console.WriteLine("Caso 3");
+                        //0
+                        Console.WriteLine("rango X: (" + (posX + 1 - len / 2) + ", " + (posX + 1) + ")");
+                        rn = random.Next(posX + 1 - len / 2, posX + 1);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ + 1, rn].Position);
+                        //1
+                        Console.WriteLine("rango X: (" + (posX + 1) + ", " + (posX + 1 + len / 2) + ")");
+                        rn = random.Next(posX + 1, posX + 1 + len / 2);
+                        Console.WriteLine("RN X: (" + posZ + ", " + rn + ")");
+                        wallMatYZ[posZ, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaYZ[posZ, rn].Position);
+                        //3
+                        Console.WriteLine("Rango Z: (" + (posZ + 1) + ", " + (posZ + 1 + len / 2) + ")");
+                        rn = random.Next(posZ + 1, posZ + 1 + len / 2);
+                        Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
+                        wallMatXY[posX, rn] = bFalse;
+                        //Console.WriteLine(ParedInternaXY[posX, rn].Position);
+                        break;
+                }
+                Console.WriteLine("----------------------------------------");
             }
         }
 

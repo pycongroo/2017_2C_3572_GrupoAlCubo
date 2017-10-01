@@ -34,8 +34,8 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        private int paredesXY = 20;
-        private int paredesYZ = 20;
+        private int paredesXY = 16;
+        private int paredesYZ = 16;
         private TgcScene[,] currentScene;
         private bool[,] skeletonsAp;
         private TgcPlane Piso { get; set; }
@@ -57,6 +57,8 @@ namespace TGC.Group.Model
         private List<TgcBox> obstaculos;
         private bool collide;
         private Random random;
+        private bool bTrue = true;
+        private bool bFalse = true;
         //private TgcArrow lookingArrow { get; set; }
 
         //Caja que se muestra en el ejemplo.
@@ -142,13 +144,13 @@ namespace TGC.Group.Model
                     var posXY = new Vector3((i+.5f) * anchoPared , .5f*altoPared, j*anchoPared);
                     ParedInternaXY[i-1, j] = TgcBox.fromSize(sizeParedXY, texturaPared);
                     ParedInternaXY[i - 1, j].Position = posXY;
-                    wallMatXY[i - 1, j] = false;
+                    wallMatXY[i - 1, j] = bTrue;
                     //obstaculos.Add(ParedInternaXY[i - 1, j]);
                     //DecoWallXY[i - 1, j] = new TgcPlane(posXY+relDecoPosXY, sizeDecoXY, TgcPlane.Orientations.XYplane, texturaDeco);
                     var posYZ = new Vector3(j * anchoPared, .5f*altoPared, (i+.5f)*anchoPared);
                     ParedInternaYZ[i-1, j] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                     ParedInternaYZ[i - 1, j].Position = posYZ;
-                    wallMatYZ[i - 1, j] = false; 
+                    wallMatYZ[i - 1, j] = bTrue; 
                     //obstaculos.Add(ParedInternaYZ[i - 1, j]);
                     //DecoWallYZ[i - 1, j] = new TgcPlane(posYZ+relDecoPosYZ, sizeDecoYZ, TgcPlane.Orientations.YZplane, texturaDeco);
                     ////generacion de valores para aparicion de paredes
@@ -212,7 +214,7 @@ namespace TGC.Group.Model
 
         private void genLab(int posX, int posZ, int len)
         {
-            if (len > 1)
+            if (len > 2)
             {
                 Console.WriteLine("genero Lab");
                 Console.WriteLine("Values: \nposX:"+ posX+"\nposZ:"+posZ+"\nlen:"+len);
@@ -220,36 +222,40 @@ namespace TGC.Group.Model
                 {
                     Console.WriteLine("Doble Z");
                     int rn;
-                    Console.WriteLine("rango X: (" + (posZ -1 - len / 2) +", " +(posZ) + ")");
-                    rn = random.Next(posZ -1 - len / 2, posZ - 1);
+                    Console.WriteLine("rango X: (" + (posZ - len / 2) +", " +(posZ) + ")");
+                    rn = random.Next(posZ - len / 2, posZ - 1);
                     Console.WriteLine("RN X: (" + posX + ", " + rn + ")");
-                    wallMatYZ[rn, posX] = true;
-                    Console.WriteLine("Rango Z: (" + (posX -1 - len / 2) + ", " + (posX) + ")");
-                    rn = random.Next(posX -1 - len / 2, posX - 1);
+                    wallMatYZ[rn, posX] = bFalse;
+                    Console.WriteLine("Rango Z: (" + (posX - len / 2) + ", " + (posX) + ")");
+                    rn = random.Next(posX - len / 2, posX - 1);
                     Console.WriteLine("RN Z: (" + posZ + ", " + rn + ")");
-                    wallMatXY[rn, posZ] = true;
-                    Console.WriteLine("Rango Z: (" + (posX) + ", " + (posX + len/2) + ")");
-                    rn = random.Next(posX, posX + len / 2);
+                    wallMatXY[rn, posZ] = bFalse;
+                    Console.WriteLine("Rango Z: (" + (posX) + ", " + (posX - 2 + len/2) + ")");
+                    rn = random.Next(posX, posX - 2 + len / 2);
                     Console.WriteLine("RN Z: (" + posZ + ", " + rn + ")");
-                    wallMatXY[rn, posZ] = true;
+                    wallMatXY[rn, posZ] = bFalse;
                 }
                 else
                 {
                     Console.WriteLine("Doble X");
                     int rn;
-                    Console.WriteLine("Rango Z: (" + (posX -1 - len / 2) +", "+ (posX)+")");
-                    rn = random.Next(posX -1 - len / 2, posX);
+                    Console.WriteLine("Rango Z: (" + (posX - len / 2) +", "+ (posX)+")");
+                    rn = random.Next(posX - len / 2, posX);
                     Console.WriteLine("RN X: (" + posZ + ", "+ rn + ")");
-                    wallMatXY[rn, posZ] = true;
+                    wallMatXY[rn, posZ] = bFalse;
                     Console.WriteLine("rango X: (" + (posZ - len / 2) + ", " + (posZ)+")");
-                    rn = random.Next(posZ -1 - len / 2, posZ);
+                    rn = random.Next(posZ - len / 2, posZ);
                     Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
-                    wallMatYZ[rn, posX] = true;
-                    Console.WriteLine("rango X: (" + (posZ) + ", " + (posZ + len/2)+")");
-                    rn = random.Next(posZ, posZ + len / 2);
+                    wallMatYZ[rn, posX] = bFalse;
+                    Console.WriteLine("rango X: (" + (posZ) + ", " + (posZ -2 + len/2)+")");
+                    rn = random.Next(posZ, posZ - 2 + len / 2);
                     Console.WriteLine("RN Z: (" + posX + ", " + rn + ")");
-                    wallMatYZ[rn ,posX] = true;
+                    wallMatYZ[rn ,posX] = bFalse;
                 }
+                genLab(posX + len / 4, posZ + len / 4, len / 2);
+                genLab(posX + len / 4, posZ - len / 4, len / 2);
+                genLab(posX - len / 4, posZ + len / 4, len / 2);
+                genLab(posX - len / 4, posZ - len / 4, len / 2);
                 Console.WriteLine("Fin Lab");
             }
         }

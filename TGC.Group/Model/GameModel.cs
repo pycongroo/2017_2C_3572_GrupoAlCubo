@@ -60,6 +60,7 @@ namespace TGC.Group.Model
         //booleanos para pruebas
         private bool bTrue = true;
         private bool bFalse = false;
+        private TgcFpsCamera camaraFps;
         //private TgcArrow lookingArrow { get; set; }
 
         //Caja que se muestra en el ejemplo.
@@ -157,6 +158,21 @@ namespace TGC.Group.Model
             int cant = paredesXY;
             Console.WriteLine("PRE GEN: \nposX:" + posX + "\nposZ:" + posZ + "\nlen:" + cant);
             genLab(posX -1, posZ -1, cant);
+
+            for (int i = 1; i < paredesXY; i++)
+            {
+                for (int j = 0; j < paredesYZ; j++)
+                {
+                    if (wallMatXY[i-1, j])
+                    {
+                        obstaculos.Add(ParedInternaXY[i - 1, j]);
+                    }
+                    if (wallMatYZ[i - 1, j])
+                    {
+                        obstaculos.Add(ParedInternaYZ[i - 1, j]);
+                    }
+                }
+            }
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
@@ -169,10 +185,10 @@ namespace TGC.Group.Model
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
-            var cameraPosition = new Vector3(0, 200, 220);
+            var cameraPosition = new Vector3(100, 200, 220);
             //playerBBox.Position = cameraPosition;
             playerBBox = new TgcBox();
-            playerBBox = TgcBox.fromSize(cameraPosition, new Vector3(25,25,25));
+            playerBBox = TgcBox.fromSize(cameraPosition, new Vector3(80,80,80));
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
             var moveSpeed = 850f;
@@ -198,7 +214,8 @@ namespace TGC.Group.Model
             //fija la camara en la dimension Y en true. Por el momento si se activa no se puede saltar ni agacharse ( seria necesario en nuestro juego?)
             var fixCamY = true;
 
-            Camara = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, fixCamY, Input);
+            camaraFps = new TgcFpsCamera(cameraPosition, moveSpeed, jumpSpeed, fixCamY, Input);
+            Camara = camaraFps;
             //Configuro donde esta la posicion de la camara y hacia donde mira.
             //Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
@@ -388,101 +405,53 @@ namespace TGC.Group.Model
             //var currentCameraPos = Camara.Position;
             //playerBBox.Position = currentCameraPos;
             
-            ////for(var i = 0; i < 4; i++) {
-            //    if (intersectBtoB(playerBBox, ParedInternaXY[0, 0])) { 
-                
-            //                currentCameraPos.X += 50;
-                        
-            //        Camara.SetCamera(currentCameraPos,Camara.LookAt, Camara.UpVector);
-            //        //playerBBox.Position = currentCameraPos;
-            //    }
-            ////}
             
-            var velocidadCaminar = 400f;
-            var velocidadRotacion = 120f;
-
-            //Calcular proxima posicion de personaje segun Input
-            var moveForward = 0f;
-            var relPosX = new Vector3(0, 0, 0);
-            var relPosY = new Vector3(0, 0, 0);
-            var moveSideRight = 0f;
-            float rotate = 0;
             var moving = false;
 
             //Adelante
-            if (Input.keyDown(Key.W))
+            if (Input.keyDown(Key.W) || Input.keyDown(Key.A) || Input.keyDown(Key.S) || Input.keyDown(Key.D))
             {
-                moveForward = -velocidadCaminar;
-                relPosX = new Vector3(-velocidadCaminar, 0, 0);
                 moving = true;
             }
 
-            //Atras
-            if (Input.keyDown(Key.S))
+            if (Input.keyDown(Key.M))
             {
-                moveForward = velocidadCaminar;
-                relPosX = new Vector3(velocidadCaminar, 0, 0);
-                moving = true;
+                this.reset();
             }
-
-            //Derecha
-            if (Input.keyDown(Key.D))
-            {
-                moveSideRight = velocidadCaminar;
-                relPosY = new Vector3(0, 0, -velocidadCaminar);
-                moving = true;
-            }
-
-            //Izquierda
-            if (Input.keyDown(Key.A))
-            {
-                moveSideRight = -velocidadCaminar;
-                relPosY = new Vector3(0, 0, velocidadCaminar);
-                moving = true;
-            }
-
-            //Si hubo rotacion
-            //if (rotating)
-            //{
-            //    //Rotar personaje y la camara, hay que multiplicarlo por el tiempo transcurrido para no atarse a la velocidad el hardware
-            //    var rotAngle = Geometry.DegreeToRadian(rotate * ElapsedTime);
-            //    personaje.rotateY(rotAngle);
-            //    camaraInterna.rotateY(rotAngle);
-            //}
-
-            //Si hubo desplazamiento
+            
             if (moving)
             {
-                //Activar animacion de caminando
-                //personaje.playAnimation("Caminando", true);
-
-                //Aplicar movimiento hacia adelante o atras segun la orientacion actual del Mesh
                 var lastPos = playerBBox.Position;
-
-                //La velocidad de movimiento tiene que multiplicarse por el elapsedTime para hacerse independiente de la velocida de CPU
-                //Ver Unidad 2: Ciclo acoplado vs ciclo desacoplado
-                //playerBBox.moveOrientedY(moveForward * ElapsedTime);
-                playerBBox.Position += relPosX * ElapsedTime;
-                playerBBox.Position += relPosY * ElapsedTime;
-
+                var currentCameraPos = camaraFps.Position;
+                playerBBox.Position = currentCameraPos;
                 //Detectar colisiones
-                var collide = false;
+                var currCollide = false;
                 foreach (var obstaculo in obstaculos)
                 {
-                    var result = TgcCollisionUtils.classifyBoxBox(playerBBox.BoundingBox, obstaculo.BoundingBox);
-                    if (result == TgcCollisionUtils.BoxBoxResult.Adentro ||
-                        result == TgcCollisionUtils.BoxBoxResult.Atravesando)
+                    var result = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, obstaculo.BoundingBox);
+                    if (result)
                     {
-                        collide = true;
+                        currCollide = true;
                         break;
                     }
                 }
 
-                //Si hubo colision, restaurar la posicion anterior
-                if (collide)
+                if (collide != currCollide)
                 {
-                    playerBBox.Position = lastPos;
+                    collide = currCollide;
+                    camaraFps.UpdateCollision(collide,lastPos);
                 }
+
+                if(currCollide)
+                {
+                    currentCameraPos = camaraFps.Position;
+                    playerBBox.Position = currentCameraPos;
+
+                }
+
+             
+                //Si hubo colision, restaurar la posicion anterior
+                
 
                 //Hacer que la camara siga al personaje en su nueva posicion
                 //camaraInterna.Target = personaje.Position;
@@ -527,9 +496,9 @@ namespace TGC.Group.Model
             PreRender();
 
             //Dibuja un texto por pantalla
-            DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
+            DrawText.drawText("Con la tecla M se Reinicia el juego.", 0, 20, Color.OrangeRed);
             DrawText.drawText(
-                "Con clic izquierdo subimos la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
+                "Con esc, haciedno click izquierdo se controla la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
                 Color.OrangeRed);
             Piso.render();
             Techo.render();
@@ -537,15 +506,19 @@ namespace TGC.Group.Model
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);
                 ParedXY[i].render();
+                ParedXY[i].BoundingBox.render();
                 ParedNXY[i].Transform = transformBox(ParedNXY[i]);
                 ParedNXY[i].render();
+                ParedNXY[i].BoundingBox.render();
             }
             for (int i = 0; i < paredesYZ; i++)
             {
                 ParedYZ[i].Transform = transformBox(ParedYZ[i]);
                 ParedYZ[i].render();
+                ParedYZ[i].BoundingBox.render();
                 ParedNYZ[i].Transform = transformBox(ParedNYZ[i]);
                 ParedNYZ[i].render();
+                ParedNYZ[i].BoundingBox.render();
             }
             for (int i = 1; i < paredesXY; i++)
             {
@@ -555,12 +528,14 @@ namespace TGC.Group.Model
                     {
                         ParedInternaXY[i - 1, j].Transform = transformBox(ParedInternaXY[i - 1, j]);
                         ParedInternaXY[i - 1, j].render();
+                        ParedInternaXY[i - 1, j].BoundingBox.render();
                         //DecoWallXY[i - 1, j].render();
                     }
                     if (wallMatYZ[i-1, j])
                     {
                         ParedInternaYZ[i - 1, j].Transform = transformBox(ParedInternaYZ[i - 1, j]);
                         ParedInternaYZ[i - 1, j].render();
+                        ParedInternaYZ[i - 1, j].BoundingBox .render();
                         //DecoWallYZ[i - 1, j].render();
                     }
                 }
@@ -690,6 +665,13 @@ namespace TGC.Group.Model
             return ((a.PMin.X <= b.PMax.X && a.PMax.X >= b.PMin.X) &&
                    (a.PMin.Y <= b.PMax.Y && a.PMax.Y >= b.PMin.Y) &&
                    (a.PMin.Z <= b.PMax.Z && a.PMax.Z >= b.PMin.Z));
+        }
+
+        private void reset()
+        {
+            camaraFps = new TgcFpsCamera(new Vector3(4850, 200, 220),850f,500f,true,Input);
+            Camara = camaraFps;
+            playerBBox.Position = Camara.Position;
         }
     }
 }

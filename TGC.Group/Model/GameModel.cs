@@ -41,6 +41,7 @@ namespace TGC.Group.Model
         private TgcPlane Piso { get; set; }
         private TgcPlane Techo { get; set; }
         private TgcBox playerBBox { get; set; }
+        private bool godMode;
         private TgcBox[] ParedXY;
         private TgcBox[] ParedNXY;
         private TgcBox[] ParedYZ;
@@ -91,6 +92,7 @@ namespace TGC.Group.Model
             //playerBBox = new TgcSphere(125,texturapiso,new Vector3(0,0,0));
         //Device de DirectX para crear primitivas.
         var d3dDevice = D3DDevice.Instance.Device;
+            godMode = false;
             
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -414,12 +416,18 @@ namespace TGC.Group.Model
                 moving = true;
             }
 
+            if (Input.keyPressed(Key.G))
+            {
+                camaraFps.GodMode();
+                godMode = !godMode;
+            }
+
             if (Input.keyDown(Key.M))
             {
                 this.reset();
             }
             
-            if (moving)
+            if (moving && !godMode)
             {
                 var lastPos = playerBBox.Position;
                 var currentCameraPos = camaraFps.Position;
@@ -496,10 +504,19 @@ namespace TGC.Group.Model
             PreRender();
 
             //Dibuja un texto por pantalla
-            DrawText.drawText("Con la tecla M se Reinicia el juego.", 0, 20, Color.OrangeRed);
-            DrawText.drawText(
-                "Con esc, haciedno click izquierdo se controla la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
-                Color.OrangeRed);
+            if (!godMode)
+            {
+                DrawText.drawText("Con la tecla M se Reinicia el juego.", 0, 20, Color.OrangeRed);
+                DrawText.drawText(
+                    "Con esc, haciedno click izquierdo se controla la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
+                    Color.OrangeRed);
+                DrawText.drawText("Con la tecla G se activa modo dios.", 0, 40, Color.OrangeRed);
+            } else
+            {
+                DrawText.drawText("Con la tecla G se desactiva modo dios.", 0, 20, Color.OrangeRed);
+                DrawText.drawText("Utiliza la tecla ESPACIO para elevarse, y CTRL para descender.", 0, 30, Color.OrangeRed);
+                DrawText.drawText("En modo dios no hay deteccion de colisiones.", 0, 40, Color.OrangeRed);
+            }
             Piso.render();
             Techo.render();
             for (int i = 0; i < paredesXY; i++)
@@ -640,31 +657,6 @@ namespace TGC.Group.Model
             return Matrix.Scaling(aBox.Scale) *
                              Matrix.RotationYawPitchRoll(aBox.Rotation.Y, aBox.Rotation.X, aBox.Rotation.Z) *
                              Matrix.Translation(aBox.Position);
-        }
-
-        private Boolean intersectStoB(TgcSphere sphere, TgcBox box)
-        {
-            var bbox = box.BoundingBox;
-            var bsphere = sphere.BoundingSphere;
-            //punto mas cercano al centro de la esfera
-            var x = Math.Max(bbox.PMin.X, Math.Min(bsphere.Center.X, bbox.PMax.X));
-            var y = Math.Max(bbox.PMin.Y, Math.Min(bsphere.Center.Y, bbox.PMax.Y));
-            var z = Math.Max(bbox.PMin.Z, Math.Min(bsphere.Center.Z, bbox.PMax.Z));
-
-            //verificar si el punto esta dentro de la esfera
-            var distance = Math.Sqrt((x - bsphere.Center.X) * (x - bsphere.Center.X) +
-                                     (y - bsphere.Center.Y) * (y - bsphere.Center.Y) +
-                                     (z - bsphere.Center.Z) * (z - bsphere.Center.Z));
-            return distance < bsphere.Radius;
-        }
-
-        private Boolean intersectBtoB(TgcBox boxA, TgcBox boxB)
-        {
-            var a = boxA.BoundingBox;
-            var b = boxB.BoundingBox;
-            return ((a.PMin.X <= b.PMax.X && a.PMax.X >= b.PMin.X) &&
-                   (a.PMin.Y <= b.PMax.Y && a.PMax.Y >= b.PMin.Y) &&
-                   (a.PMin.Z <= b.PMax.Z && a.PMax.Z >= b.PMin.Z));
         }
 
         private void reset()

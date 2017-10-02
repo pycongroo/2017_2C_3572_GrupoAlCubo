@@ -207,5 +207,17 @@ namespace TGC.Group.Camera
             lastMovPos = lastpos;
         }
 
+        public void GodMode()
+        {
+            if (fixCamY)
+            {
+                fixCamY = false;
+            }else
+            {
+                positionEye.Y = 200;
+                fixCamY = true;
+            }
+        }
+
     }
 }

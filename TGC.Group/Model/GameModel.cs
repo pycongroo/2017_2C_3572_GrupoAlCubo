@@ -34,8 +34,8 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        private int paredesXY = 16; //potencia de 2
-        private int paredesYZ = 16; //potencia de 2
+        private int paredesXY = 32; //potencia de 2
+        private int paredesYZ = 32; //potencia de 2
         private TgcScene[,] currentScene;
         private bool[,] skeletonsAp;
         private TgcPlane Piso { get; set; }

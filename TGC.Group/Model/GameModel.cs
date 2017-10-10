@@ -493,6 +493,42 @@ namespace TGC.Group.Model
             }*/
         }
 
+        private void renderMap(float iniX, float iniZ, float finX, float finZ)
+        {
+            int posiX = (int) (iniX / anchoPared);
+            int posiZ = (int) (iniZ / anchoPared);
+            int posfX = (int) (finX / anchoPared);
+            int posfZ = (int) (finZ / anchoPared);
+            System.Console.WriteLine("X: ["+posiX+"->"+posfX+"]");
+            System.Console.WriteLine("Z: [" + posiZ + "->" + posfZ + "]");
+            for (int i = posiX + 1; i < posfX + 1; i++)
+            {
+                for (int j = posiZ; j < posfZ + 1; j++)
+                {
+                    if (wallMatXY[i - 1, j])
+                    {
+                        ParedInternaXY[i - 1, j].Transform = transformBox(ParedInternaXY[i - 1, j]);
+                        ParedInternaXY[i - 1, j].render();
+                        ParedInternaXY[i - 1, j].BoundingBox.render();
+                        //DecoWallXY[i - 1, j].render();
+                    }
+                }
+            }
+            for (int i = posiZ + 1; i < posfZ + 1; i++)
+            {
+                for (int j = posiX; j < posfX + 1; j++)
+                {
+                    if (wallMatYZ[i - 1, j])
+                    {
+                        ParedInternaYZ[i - 1, j].Transform = transformBox(ParedInternaYZ[i - 1, j]);
+                        ParedInternaYZ[i - 1, j].render();
+                        ParedInternaYZ[i - 1, j].BoundingBox.render();
+                        //DecoWallYZ[i - 1, j].render();
+                    }
+                }
+            }
+        }
+
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al renderizado.
@@ -517,6 +553,9 @@ namespace TGC.Group.Model
                 DrawText.drawText("Utiliza la tecla ESPACIO para elevarse, y CTRL para descender.", 0, 30, Color.OrangeRed);
                 DrawText.drawText("En modo dios no hay deteccion de colisiones.", 0, 40, Color.OrangeRed);
             }
+            renderMap(camaraFps.Position.X, camaraFps.Position.Z, 
+                camaraFps.Position.X+(camaraFps.LookAt.X - camaraFps.Position.X +120)*10,
+                camaraFps.Position.Z + (camaraFps.LookAt.Z - camaraFps.Position.Z+120)*10);
             Piso.render();
             Techo.render();
             for (int i = 0; i < paredesXY; i++)
@@ -537,26 +576,7 @@ namespace TGC.Group.Model
                 ParedNYZ[i].render();
                 ParedNYZ[i].BoundingBox.render();
             }
-            for (int i = 1; i < paredesXY; i++)
-            {
-                for (int j = 0; j < paredesYZ; j++)
-                {
-                    if (wallMatXY[i-1, j])
-                    {
-                        ParedInternaXY[i - 1, j].Transform = transformBox(ParedInternaXY[i - 1, j]);
-                        ParedInternaXY[i - 1, j].render();
-                        ParedInternaXY[i - 1, j].BoundingBox.render();
-                        //DecoWallXY[i - 1, j].render();
-                    }
-                    if (wallMatYZ[i-1, j])
-                    {
-                        ParedInternaYZ[i - 1, j].Transform = transformBox(ParedInternaYZ[i - 1, j]);
-                        ParedInternaYZ[i - 1, j].render();
-                        ParedInternaYZ[i - 1, j].BoundingBox .render();
-                        //DecoWallYZ[i - 1, j].render();
-                    }
-                }
-            }
+            
             for (int i = 0; i < paredesXY; i++)
             {
                 for (int j = 0; j < paredesYZ; j++)

@@ -1,4 +1,5 @@
 using Microsoft.DirectX;
+using Microsoft.DirectX.Direct3D;
 using Microsoft.DirectX.DirectInput;
 using System.Drawing;
 using TGC.Core.Direct3D;
@@ -11,6 +12,8 @@ using TGC.Group.Camera;
 using System;
 using System.Collections.Generic;
 using TGC.Core.Collision;
+using TGC.Core.Fog;
+using TGC.Core.Shaders;
 
 namespace TGC.Group.Model
 {
@@ -34,14 +37,15 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        private int paredesXY = 32; //potencia de 2
-        private int paredesYZ = 32; //potencia de 2
+        private int paredesXY = 16; //potencia de 2
+        private int paredesYZ = 16; //potencia de 2
         private TgcScene[,] currentScene;
         private bool[,] skeletonsAp;
         private TgcPlane Piso { get; set; }
         private TgcPlane Techo { get; set; }
         private TgcBox playerBBox { get; set; }
         private bool godMode;
+        private bool bMode;
         private TgcBox[] ParedXY;
         private TgcBox[] ParedNXY;
         private TgcBox[] ParedYZ;
@@ -64,8 +68,12 @@ namespace TGC.Group.Model
         private TgcFpsCamera camaraFps;
         //private TgcArrow lookingArrow { get; set; }
 
+        private TgcBox ligthBox { get; set; }
+
         //Caja que se muestra en el ejemplo.
-        private TgcBox Box { get; set; }
+        //private TgcBox Box { get; set; }
+
+        private Microsoft.DirectX.Direct3D.Effect efecto;
         
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -93,6 +101,7 @@ namespace TGC.Group.Model
         //Device de DirectX para crear primitivas.
         var d3dDevice = D3DDevice.Instance.Device;
             godMode = false;
+            bMode = false;
             
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -115,6 +124,9 @@ namespace TGC.Group.Model
             var texturaTecho = TgcTexture.createTexture(pathTexturaPiso);
             var texturaPared = TgcTexture.createTexture(pathTexturaPared);
             var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
+
+            efecto = TgcShaders.Instance.TgcMeshPointLightShader;
+            //efecto = TgcShaders.Instance.TgcMeshSpotLightShader;
 
             Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
             Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
@@ -178,10 +190,10 @@ namespace TGC.Group.Model
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
-            Box = TgcBox.fromSize(size, texture);
+            //Box = TgcBox.fromSize(size, texture);
             //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
             //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new Vector3(512 * posX, 100, 512 * posZ);
+            //Box.Position = new Vector3(512 * posX, 100, 512 * posZ);
             
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
@@ -222,6 +234,8 @@ namespace TGC.Group.Model
             //Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+
+            ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
         }
 
         private void genLab(int posX, int posZ, int len)
@@ -422,10 +436,12 @@ namespace TGC.Group.Model
                 godMode = !godMode;
             }
 
-            if (Input.keyDown(Key.M))
+            if (Input.keyPressed(Key.M))
             {
                 this.reset();
             }
+
+            if (Input.keyPressed(Key.B)) bMode = !bMode; 
             
             if (moving && !godMode)
             {
@@ -470,12 +486,12 @@ namespace TGC.Group.Model
             {
                 //personaje.playAnimation("Parado", true);
             }
-            
+
             //Ajustar la posicion de la camara segun la colision con los objetos del escenario
             //ajustarPosicionDeCamara();
 
-
-
+            //mover ligthBox
+            ligthBox.Position = camaraFps.Position;
 
             //Capturar Input Mouse
             /*if (Input.buttonUp(Core.Input.TgcD3dInput.MouseButtons.BUTTON_LEFT))
@@ -503,6 +519,30 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
+            //var ligthDir = Camara.LookAt;
+            //ligthDir.Normalize();
+            efecto.SetValue("lightColor", Color.LightYellow.ToArgb());
+            efecto.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(ligthBox.Position));
+            efecto.SetValue("eyePosition", TgcParserUtils.vector3ToFloat4Array(Camara.Position));
+            //efecto.SetValue("spotLightDir", TgcParserUtils.vector3ToFloat3Array(ligthDir));
+            efecto.SetValue("lightIntensity", 30f);
+            efecto.SetValue("lightAttenuation", 0.29f);
+            //efecto.SetValue("spotLightAngleCos", FastMath.ToRad(18));
+            //efecto.SetValue("spotLightExponent", 11f);
+
+            //Cargar variables de shader de Material. El Material en realidad deberia ser propio de cada mesh. Pero en este ejemplo se simplifica con uno comun para todos
+            if (!godMode)
+            {
+                efecto.SetValue("materialEmissiveColor", Color.Black.ToArgb());
+            } else
+            {
+                efecto.SetValue("materialEmissiveColor", Color.White.ToArgb());
+            }
+            efecto.SetValue("materialAmbientColor", Color.GhostWhite.ToArgb());
+            efecto.SetValue("materialDiffuseColor", Color.White.ToArgb());
+            efecto.SetValue("materialSpecularColor", Color.White.ToArgb());
+            efecto.SetValue("materialSpecularExp", 10f);
+
             //Dibuja un texto por pantalla
             if (!godMode)
             {
@@ -511,31 +551,45 @@ namespace TGC.Group.Model
                     "Con esc, haciedno click izquierdo se controla la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
                     Color.OrangeRed);
                 DrawText.drawText("Con la tecla G se activa modo dios.", 0, 40, Color.OrangeRed);
+                DrawText.drawText("Con la tecla M puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
             } else
             {
                 DrawText.drawText("Con la tecla G se desactiva modo dios.", 0, 20, Color.OrangeRed);
                 DrawText.drawText("Utiliza la tecla ESPACIO para elevarse, y CTRL para descender.", 0, 30, Color.OrangeRed);
                 DrawText.drawText("En modo dios no hay deteccion de colisiones.", 0, 40, Color.OrangeRed);
+                DrawText.drawText("Con la tecla M puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
             }
+            Piso.Effect = efecto;
+            Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
             Piso.render();
+            Techo.Effect = efecto;
+            Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
             Techo.render();
             for (int i = 0; i < paredesXY; i++)
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);
+                ParedXY[i].Effect = efecto;
+                ParedXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedXY[i].toMesh("paredXY").RenderType);
                 ParedXY[i].render();
-                ParedXY[i].BoundingBox.render();
+                if (bMode) ParedXY[i].BoundingBox.render();
                 ParedNXY[i].Transform = transformBox(ParedNXY[i]);
+                ParedNXY[i].Effect = efecto;
+                ParedNXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedNXY[i].toMesh("paredNXY").RenderType);
                 ParedNXY[i].render();
-                ParedNXY[i].BoundingBox.render();
+                if (bMode) ParedNXY[i].BoundingBox.render();
             }
             for (int i = 0; i < paredesYZ; i++)
             {
                 ParedYZ[i].Transform = transformBox(ParedYZ[i]);
+                ParedYZ[i].Effect = efecto;
+                ParedYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedYZ[i].toMesh("paredYZ").RenderType);
                 ParedYZ[i].render();
-                ParedYZ[i].BoundingBox.render();
+                if (bMode) ParedYZ[i].BoundingBox.render();
                 ParedNYZ[i].Transform = transformBox(ParedNYZ[i]);
+                ParedNYZ[i].Effect = efecto;
+                ParedNYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedNYZ[i].toMesh("paredNYZ").RenderType);
                 ParedNYZ[i].render();
-                ParedNYZ[i].BoundingBox.render();
+                if (bMode) ParedNYZ[i].BoundingBox.render();
             }
             for (int i = 1; i < paredesXY; i++)
             {
@@ -544,15 +598,19 @@ namespace TGC.Group.Model
                     if (wallMatXY[i-1, j])
                     {
                         ParedInternaXY[i - 1, j].Transform = transformBox(ParedInternaXY[i - 1, j]);
+                        ParedInternaXY[i - 1, j].Effect = efecto;
+                        ParedInternaXY[i - 1, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedInternaXY[i - 1, j].toMesh("paredInternaXY").RenderType);
                         ParedInternaXY[i - 1, j].render();
-                        ParedInternaXY[i - 1, j].BoundingBox.render();
+                        if(bMode) ParedInternaXY[i - 1, j].BoundingBox.render();
                         //DecoWallXY[i - 1, j].render();
                     }
                     if (wallMatYZ[i-1, j])
                     {
                         ParedInternaYZ[i - 1, j].Transform = transformBox(ParedInternaYZ[i - 1, j]);
+                        ParedInternaYZ[i - 1, j].Effect = efecto;
+                        ParedInternaYZ[i - 1, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedInternaYZ[i - 1, j].toMesh("paredInternaYZ").RenderType);
                         ParedInternaYZ[i - 1, j].render();
-                        ParedInternaYZ[i - 1, j].BoundingBox .render();
+                        if (bMode) ParedInternaYZ[i - 1, j].BoundingBox .render();
                         //DecoWallYZ[i - 1, j].render();
                     }
                 }
@@ -564,6 +622,8 @@ namespace TGC.Group.Model
                     if (skeletonsAp[i, j])
                     {
                         currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100,100,100));
+                        currentScene[i, j].Meshes[0].Effect = efecto;
+                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         currentScene[i, j].Meshes[0].render();
                     }
                 }
@@ -573,18 +633,18 @@ namespace TGC.Group.Model
             //Piso3.render();
             //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
             //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
-            Box.Transform = Matrix.Scaling(Box.Scale) *
+            /*Box.Transform = Matrix.Scaling(Box.Scale) *
                             Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
-                            Matrix.Translation(Box.Position);
+                            Matrix.Translation(Box.Position);*/
             playerBBox.Transform = transformBox(playerBBox);
-           /* playerBBox.Transform = Matrix.Scaling(Box.Scale) *
-                            Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
-                            Matrix.Translation(Box.Position);-*/
-            playerBBox.BoundingBox.render();
+            /* playerBBox.Transform = Matrix.Scaling(Box.Scale) *
+                             Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
+                             Matrix.Translation(Box.Position);-*/
+            if (bMode) playerBBox.BoundingBox.render();
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
-            Box.render();
-            Box.BoundingBox.render();
+            //Box.render();
+            //Box.BoundingBox.render();
              
             //currentScene.Meshes[0].render();
             
@@ -600,7 +660,7 @@ namespace TGC.Group.Model
         public override void Dispose()
         {
             //Dispose de la caja.
-            Box.dispose();
+            //Box.dispose();
             playerBBox.dispose();
 
             /*for (int i = 1; i < paredesXY; i++)
@@ -661,9 +721,12 @@ namespace TGC.Group.Model
 
         private void reset()
         {
-            camaraFps = new TgcFpsCamera(new Vector3(4850, 200, 220),850f,500f,true,Input);
-            Camara = camaraFps;
-            playerBBox.Position = Camara.Position;
+            if (!godMode)
+            {
+                camaraFps = new TgcFpsCamera(new Vector3(4850, 200, 220), 850f, 500f, true, Input);
+                Camara = camaraFps;
+                playerBBox.Position = Camara.Position;
+            }
         }
     }
 }

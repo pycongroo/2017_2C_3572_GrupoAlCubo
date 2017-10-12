@@ -1,5 +1,4 @@
 using Microsoft.DirectX;
-using Microsoft.DirectX.Direct3D;
 using Microsoft.DirectX.DirectInput;
 using System.Drawing;
 using TGC.Core.Direct3D;
@@ -12,8 +11,8 @@ using TGC.Group.Camera;
 using System;
 using System.Collections.Generic;
 using TGC.Core.Collision;
-using TGC.Core.Fog;
 using TGC.Core.Shaders;
+using TGC.Group.Model.MazeGenerator;
 
 namespace TGC.Group.Model
 {
@@ -37,11 +36,10 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        private int paredesXY = 16; //potencia de 2
-        private int paredesYZ = 16; //potencia de 2
+        private int maze_width = 16; //potencia de 2
+        private int maze_height = 16; //potencia de 2
         private TgcScene[,] currentScene;
         private bool[,] skeletonsAp;
-        private TgcPlane Piso { get; set; }
         private TgcPlane Techo { get; set; }
         private TgcBox playerBBox { get; set; }
         private bool godMode;
@@ -59,6 +57,7 @@ namespace TGC.Group.Model
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
+        private Laberinto3D laberinto3D;
         private List<TgcBox> obstaculos;
         private bool collide;
         private Random random;
@@ -83,20 +82,23 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
+            Maze maze = new Maze(maze_width, maze_height);
+            laberinto3D = new Laberinto3D(this, maze);
+
             obstaculos = new List<TgcBox>();
             collide = false;
-            currentScene = new TgcScene[paredesXY, paredesYZ];
-            skeletonsAp = new bool[paredesXY, paredesYZ];
-            ParedXY = new TgcBox[paredesXY];
-            ParedNXY = new TgcBox[paredesXY];
-            ParedYZ = new TgcBox[paredesYZ];
-            ParedNYZ = new TgcBox[paredesYZ];
-            DecoWallXY = new TgcPlane[paredesXY -1, paredesXY];
-            DecoWallYZ = new TgcPlane[paredesYZ -1, paredesYZ];
-            ParedInternaXY = new TgcBox[paredesXY - 1, paredesXY];
-            ParedInternaYZ = new TgcBox[paredesYZ - 1, paredesYZ];
-            wallMatXY = new bool[paredesXY - 1, paredesXY];
-            wallMatYZ = new bool[paredesYZ - 1, paredesYZ];
+            currentScene = new TgcScene[maze_width, maze_height];
+            skeletonsAp = new bool[maze_width, maze_height];
+            ParedXY = new TgcBox[maze_width];
+            ParedNXY = new TgcBox[maze_width];
+            ParedYZ = new TgcBox[maze_height];
+            ParedNYZ = new TgcBox[maze_height];
+            DecoWallXY = new TgcPlane[maze_width -1, maze_width];
+            DecoWallYZ = new TgcPlane[maze_height -1, maze_height];
+            ParedInternaXY = new TgcBox[maze_width - 1, maze_width];
+            ParedInternaYZ = new TgcBox[maze_height - 1, maze_height];
+            wallMatXY = new bool[maze_width - 1, maze_width];
+            wallMatYZ = new bool[maze_height - 1, maze_height];
             //playerBBox = new TgcSphere(125,texturapiso,new Vector3(0,0,0));
         //Device de DirectX para crear primitivas.
         var d3dDevice = D3DDevice.Instance.Device;
@@ -106,56 +108,55 @@ namespace TGC.Group.Model
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
-            var pathTexturaPiso = MediaDir + "rock_floor2.jpg";
+            
             var pathTexturaPared = MediaDir + "brick1_1.jpg";
             var pathTexturaDeco = MediaDir + "cartelera2.jpg";
             var sizeDecoXY = new Vector3(300, 300, 0);
             var sizeDecoYZ = new Vector3(0, 300, 300);
             var sizeParedXY = new Vector3(anchoPared, altoPared, grosorPared);
             var sizeParedYZ = new Vector3(grosorPared, altoPared, anchoPared);
-            var sizePiso = new Vector3(512*paredesXY, 20, 512*paredesYZ);
+
             var relDecoPosXY = new Vector3(100, 100, 10);
             var relDecoPosYZ = new Vector3(10, 100, 100);
 
             //Cargamos una textura, tener en cuenta que cargar una textura significa crear una copia en memoria.
             //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
             var texture = TgcTexture.createTexture(pathTexturaCaja);
-            var texturePiso = TgcTexture.createTexture(pathTexturaPiso);
-            var texturaTecho = TgcTexture.createTexture(pathTexturaPiso);
+            //var texturaTecho = TgcTexture.createTexture(pathTexturaPiso);
             var texturaPared = TgcTexture.createTexture(pathTexturaPared);
             var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
 
             efecto = TgcShaders.Instance.TgcMeshPointLightShader;
             //efecto = TgcShaders.Instance.TgcMeshSpotLightShader;
 
-            Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
-            Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
-            for (int i=0; i< paredesXY; i++)
+            
+            //Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
+            for (int i=0; i< maze_width; i++)
             {
                 var posXY = new Vector3((i+0.5f)*anchoPared, 0.5f*altoPared, 0);
                 ParedXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedXY[i].Position = posXY;
                 obstaculos.Add(ParedXY[i]);
-                var posNXY = new Vector3((i + 0.5f) * anchoPared, 0.5f * altoPared, paredesXY*anchoPared);
+                var posNXY = new Vector3((i + 0.5f) * anchoPared, 0.5f * altoPared, maze_width*anchoPared);
                 ParedNXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedNXY[i].Position = posNXY;
                 obstaculos.Add(ParedNXY[i]);
             }
-            for (int i = 0; i < paredesYZ; i++)
+            for (int i = 0; i < maze_height; i++)
             {
                 var posYZ = new Vector3(0, 0.5f * altoPared, (i + 0.5f) * anchoPared);
                 ParedYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                 ParedYZ[i].Position = posYZ;
                 obstaculos.Add(ParedYZ[i]);
-                var posNYZ = new Vector3(paredesYZ * anchoPared, 0.5f * altoPared, (i + 0.5f) * anchoPared);
+                var posNYZ = new Vector3(maze_height * anchoPared, 0.5f * altoPared, (i + 0.5f) * anchoPared);
                 ParedNYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                 ParedNYZ[i].Position = posNYZ;
                 obstaculos.Add(ParedNYZ[i]);
             }
             random = new Random();
-            for (int i = 1; i < paredesXY; i++)
+            for (int i = 1; i < maze_width; i++)
             {
-                for(int j = 0; j < paredesYZ; j++)
+                for(int j = 0; j < maze_height; j++)
                 {
                     var posXY = new Vector3((j + .5f) * anchoPared, .5f * altoPared, i * anchoPared); 
                     ParedInternaXY[i-1, j] = TgcBox.fromSize(sizeParedXY, texturaPared);
@@ -167,15 +168,15 @@ namespace TGC.Group.Model
                     wallMatYZ[i - 1, j] = bTrue;
                 }
             }
-            int posX = paredesXY / 2;
-            int posZ = paredesYZ / 2;
-            int cant = paredesXY;
+            int posX = maze_width / 2;
+            int posZ = maze_height / 2;
+            int cant = maze_width;
             Console.WriteLine("PRE GEN: \nposX:" + posX + "\nposZ:" + posZ + "\nlen:" + cant);
             genLab(posX -1, posZ -1, cant);
 
-            for (int i = 1; i < paredesXY; i++)
+            for (int i = 1; i < maze_width; i++)
             {
-                for (int j = 0; j < paredesYZ; j++)
+                for (int j = 0; j < maze_height; j++)
                 {
                     if (wallMatXY[i - 1, j])
                     {
@@ -210,9 +211,9 @@ namespace TGC.Group.Model
 
             var esquletoSize = new Vector3(5,5,5);
 
-            for (int i = 0; i < paredesXY; i++)
+            for (int i = 0; i < maze_width; i++)
             {
-                for (int j = 0; j < paredesYZ; j++)
+                for (int j = 0; j < maze_height; j++)
                 {
                     loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml", i, j);
                     //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
@@ -559,13 +560,14 @@ namespace TGC.Group.Model
                 DrawText.drawText("En modo dios no hay deteccion de colisiones.", 0, 40, Color.OrangeRed);
                 DrawText.drawText("Con la tecla M puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
             }
-            Piso.Effect = efecto;
-            Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
-            Piso.render();
-            Techo.Effect = efecto;
-            Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
-            Techo.render();
-            for (int i = 0; i < paredesXY; i++)
+            //Piso.Effect = efecto;
+            //Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
+            //Piso.render();
+            //Techo.Effect = efecto;
+            //Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
+            //Techo.render();
+            laberinto3D.Render();
+            for (int i = 0; i < maze_width; i++)
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);
                 ParedXY[i].Effect = efecto;
@@ -578,7 +580,7 @@ namespace TGC.Group.Model
                 ParedNXY[i].render();
                 if (bMode) ParedNXY[i].BoundingBox.render();
             }
-            for (int i = 0; i < paredesYZ; i++)
+            for (int i = 0; i < maze_height; i++)
             {
                 ParedYZ[i].Transform = transformBox(ParedYZ[i]);
                 ParedYZ[i].Effect = efecto;
@@ -591,9 +593,9 @@ namespace TGC.Group.Model
                 ParedNYZ[i].render();
                 if (bMode) ParedNYZ[i].BoundingBox.render();
             }
-            for (int i = 1; i < paredesXY; i++)
+            for (int i = 1; i < maze_width; i++)
             {
-                for (int j = 0; j < paredesYZ; j++)
+                for (int j = 0; j < maze_height; j++)
                 {
                     if (wallMatXY[i-1, j])
                     {
@@ -615,9 +617,9 @@ namespace TGC.Group.Model
                     }
                 }
             }
-            for (int i = 0; i < paredesXY; i++)
+            for (int i = 0; i < maze_width; i++)
             {
-                for (int j = 0; j < paredesYZ; j++)
+                for (int j = 0; j < maze_height; j++)
                 {
                     if (skeletonsAp[i, j])
                     {
@@ -678,9 +680,9 @@ namespace TGC.Group.Model
                 }
             }*/
 
-                        for (int i = 0; i < paredesXY; i++)
+                        for (int i = 0; i < maze_width; i++)
                         {
-                            for (int j = 0; j < paredesYZ; j++)
+                            for (int j = 0; j < maze_height; j++)
                             {
                                 currentScene[i, j].Meshes[0].dispose();
                             }

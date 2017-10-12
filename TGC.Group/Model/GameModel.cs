@@ -519,6 +519,7 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
+            TgcMesh auxMesh = null;
             //var ligthDir = Camara.LookAt;
             //ligthDir.Normalize();
             efecto.SetValue("lightColor", Color.LightYellow.ToArgb());
@@ -569,26 +570,34 @@ namespace TGC.Group.Model
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);
                 ParedXY[i].Effect = efecto;
-                ParedXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedXY[i].toMesh("paredXY").RenderType);
+                auxMesh = ParedXY[i].toMesh("paredXY");
+                ParedXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
                 ParedXY[i].render();
+                auxMesh.dispose();
                 if (bMode) ParedXY[i].BoundingBox.render();
                 ParedNXY[i].Transform = transformBox(ParedNXY[i]);
                 ParedNXY[i].Effect = efecto;
-                ParedNXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedNXY[i].toMesh("paredNXY").RenderType);
+                auxMesh = ParedNXY[i].toMesh("paredNXY");
+                ParedNXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
                 ParedNXY[i].render();
+                auxMesh.dispose();
                 if (bMode) ParedNXY[i].BoundingBox.render();
             }
             for (int i = 0; i < paredesYZ; i++)
             {
                 ParedYZ[i].Transform = transformBox(ParedYZ[i]);
                 ParedYZ[i].Effect = efecto;
-                ParedYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedYZ[i].toMesh("paredYZ").RenderType);
+                auxMesh = ParedYZ[i].toMesh("paredYZ");
+                ParedYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
                 ParedYZ[i].render();
+                auxMesh.dispose();
                 if (bMode) ParedYZ[i].BoundingBox.render();
                 ParedNYZ[i].Transform = transformBox(ParedNYZ[i]);
                 ParedNYZ[i].Effect = efecto;
-                ParedNYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedNYZ[i].toMesh("paredNYZ").RenderType);
+                auxMesh = ParedNYZ[i].toMesh("paredNYZ");
+                ParedNYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
                 ParedNYZ[i].render();
+                auxMesh.dispose();
                 if (bMode) ParedNYZ[i].BoundingBox.render();
             }
             for (int i = 1; i < paredesXY; i++)
@@ -599,8 +608,10 @@ namespace TGC.Group.Model
                     {
                         ParedInternaXY[i - 1, j].Transform = transformBox(ParedInternaXY[i - 1, j]);
                         ParedInternaXY[i - 1, j].Effect = efecto;
-                        ParedInternaXY[i - 1, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedInternaXY[i - 1, j].toMesh("paredInternaXY").RenderType);
+                        auxMesh = ParedInternaXY[i - 1, j].toMesh("paredInternaXY");
+                        ParedInternaXY[i - 1, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
                         ParedInternaXY[i - 1, j].render();
+                        auxMesh.dispose();
                         if(bMode) ParedInternaXY[i - 1, j].BoundingBox.render();
                         //DecoWallXY[i - 1, j].render();
                     }
@@ -608,8 +619,10 @@ namespace TGC.Group.Model
                     {
                         ParedInternaYZ[i - 1, j].Transform = transformBox(ParedInternaYZ[i - 1, j]);
                         ParedInternaYZ[i - 1, j].Effect = efecto;
-                        ParedInternaYZ[i - 1, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(ParedInternaYZ[i - 1, j].toMesh("paredInternaYZ").RenderType);
+                        auxMesh = ParedInternaYZ[i - 1, j].toMesh("paredInternaYZ");
+                        ParedInternaYZ[i - 1, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
                         ParedInternaYZ[i - 1, j].render();
+                        auxMesh.dispose();
                         if (bMode) ParedInternaYZ[i - 1, j].BoundingBox .render();
                         //DecoWallYZ[i - 1, j].render();
                     }

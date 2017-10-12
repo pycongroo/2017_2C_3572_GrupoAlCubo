@@ -608,8 +608,8 @@ namespace TGC.Group.Model
                     "Con esc, haciedno click izquierdo se controla la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
                     Color.OrangeRed);
                 DrawText.drawText("Con la tecla G se activa modo dios.", 0, 40, Color.OrangeRed);
-                DrawText.drawText("Con la tecla M puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
-                DrawText.drawText("Con la tecla P reestablece la intensidad de la luz.", 0, 60, Color.OrangeRed);
+                DrawText.drawText("Con la tecla B puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
+                DrawText.drawText("Recogiendo velas se reestablece la intensidad de la luz( o presionando la tecla P).", 0, 60, Color.OrangeRed);
                 DrawText.drawText("Intensidad de la luz: " + ligthIntensity, 0, 70, Color.OrangeRed);
                 DrawText.drawText("Hay " + objCount + " esqueletos y " + candleCount + " velas disponibles.", 0, 80, Color.OrangeRed);
             }
@@ -618,7 +618,7 @@ namespace TGC.Group.Model
                 DrawText.drawText("Con la tecla G se desactiva modo dios.", 0, 20, Color.OrangeRed);
                 DrawText.drawText("Utiliza la tecla ESPACIO para elevarse, y CTRL para descender.", 0, 30, Color.OrangeRed);
                 DrawText.drawText("En modo dios no hay deteccion de colisiones.", 0, 40, Color.OrangeRed);
-                DrawText.drawText("Con la tecla M puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
+                DrawText.drawText("Con la tecla B puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
             }
             Piso.Effect = efecto;
             Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);

@@ -214,14 +214,16 @@ namespace TGC.Group.Model
             {
                 for (int j = 0; j < paredesYZ; j++)
                 {
-                    loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml", i, j);
-                    //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
-                    currentScene[i, j].Meshes[0].AutoTransformEnable = true;
-                    //Desplazarlo
-                    currentScene[i, j].Meshes[0].move(512 * i + 256, 0, 512 * j + 256);
-                    currentScene[i, j].Meshes[0].Scale = esquletoSize;
-                    currentScene[i, j].Meshes[0].Rotation = new Vector3(0,random.Next(0,360),0);
-                    skeletonsAp[i, j] = (random.Next(0, 10) < 2);
+                    if (random.Next(0, 10) < 2) {
+                        loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml", i, j);
+                        //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
+                        currentScene[i, j].Meshes[0].AutoTransformEnable = true;
+                        //Desplazarlo
+                        currentScene[i, j].Meshes[0].move(512 * i + 256, 0, 512 * j + 256);
+                        currentScene[i, j].Meshes[0].Scale = esquletoSize;
+                        currentScene[i, j].Meshes[0].Rotation = new Vector3(0, random.Next(0, 360), 0);
+                        skeletonsAp[i, j] = true;
+                    }
                 }
             }
 
@@ -676,7 +678,7 @@ namespace TGC.Group.Model
             //Box.dispose();
             playerBBox.dispose();
 
-            /*for (int i = 1; i < paredesXY; i++)
+            for (int i = 1; i < paredesXY; i++)
             {
                 for (int j = 0; j < paredesYZ; j++)
                 {
@@ -689,15 +691,26 @@ namespace TGC.Group.Model
                         ParedInternaYZ[i - 1, j].dispose();
                     }
                 }
-            }*/
+            }
 
-                        for (int i = 0; i < paredesXY; i++)
-                        {
-                            for (int j = 0; j < paredesYZ; j++)
-                            {
-                                currentScene[i, j].Meshes[0].dispose();
-                            }
-                        }
+            for (int i = 0; i < paredesXY; i++)
+            {
+                ParedXY[i].dispose();
+                ParedNXY[i].dispose();
+            }
+            for (int i = 0; i < paredesYZ; i++)
+            {
+                ParedYZ[i].dispose();
+                ParedNYZ[i].dispose();
+            }
+
+            for (int i = 0; i < paredesXY; i++)
+            {
+                for (int j = 0; j < paredesYZ; j++)
+                {
+                   if(skeletonsAp[i,j]) currentScene[i, j].Meshes[0].dispose();
+                }
+            }
 
         }
 

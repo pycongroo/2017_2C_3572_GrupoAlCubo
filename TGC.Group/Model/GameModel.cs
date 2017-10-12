@@ -40,23 +40,23 @@ namespace TGC.Group.Model
         private int maze_height = 16; //potencia de 2
         private TgcScene[,] currentScene;
         private bool[,] skeletonsAp;
-        private TgcPlane Techo { get; set; }
+        //private TgcPlane Techo { get; set; }
         private TgcBox playerBBox { get; set; }
         private bool godMode;
-        private bool bMode;
-        private TgcBox[] ParedXY;
-        private TgcBox[] ParedNXY;
-        private TgcBox[] ParedYZ;
-        private TgcBox[] ParedNYZ;
+        private bool bMode { get; set; }
+        //private TgcBox[] ParedXY;
+        //private TgcBox[] ParedNXY;
+        //private TgcBox[] ParedYZ;
+        //private TgcBox[] ParedNYZ;
         private TgcPlane[,] DecoWallXY;
         private TgcPlane[,] DecoWallYZ;
-        private TgcBox[,] ParedInternaXY;
-        private TgcBox[,] ParedInternaYZ;
+        //private TgcBox[,] ParedInternaXY;
+        //private TgcBox[,] ParedInternaYZ;
         private bool[,] wallMatXY;
         private bool[,] wallMatYZ;
-        private float anchoPared = 512;
-        private float altoPared = 512;
-        private float grosorPared = 50;
+        //private float anchoPared = 512;
+        //private float altoPared = 512;
+        //private float grosorPared = 50;
         private Laberinto3D laberinto3D;
         private List<TgcBox> obstaculos;
         private bool collide;
@@ -89,14 +89,14 @@ namespace TGC.Group.Model
             collide = false;
             currentScene = new TgcScene[maze_width, maze_height];
             skeletonsAp = new bool[maze_width, maze_height];
-            ParedXY = new TgcBox[maze_width];
-            ParedNXY = new TgcBox[maze_width];
-            ParedYZ = new TgcBox[maze_height];
-            ParedNYZ = new TgcBox[maze_height];
+            //ParedXY = new TgcBox[maze_width];
+            //ParedNXY = new TgcBox[maze_width];
+            //ParedYZ = new TgcBox[maze_height];
+            //ParedNYZ = new TgcBox[maze_height];
             DecoWallXY = new TgcPlane[maze_width -1, maze_width];
             DecoWallYZ = new TgcPlane[maze_height -1, maze_height];
-            ParedInternaXY = new TgcBox[maze_width - 1, maze_width];
-            ParedInternaYZ = new TgcBox[maze_height - 1, maze_height];
+            //ParedInternaXY = new TgcBox[maze_width - 1, maze_width];
+            //ParedInternaYZ = new TgcBox[maze_height - 1, maze_height];
             wallMatXY = new bool[maze_width - 1, maze_width];
             wallMatYZ = new bool[maze_height - 1, maze_height];
             //playerBBox = new TgcSphere(125,texturapiso,new Vector3(0,0,0));
@@ -109,12 +109,12 @@ namespace TGC.Group.Model
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
             
-            var pathTexturaPared = MediaDir + "brick1_1.jpg";
+            //var pathTexturaPared = MediaDir + "brick1_1.jpg";
             var pathTexturaDeco = MediaDir + "cartelera2.jpg";
             var sizeDecoXY = new Vector3(300, 300, 0);
             var sizeDecoYZ = new Vector3(0, 300, 300);
-            var sizeParedXY = new Vector3(anchoPared, altoPared, grosorPared);
-            var sizeParedYZ = new Vector3(grosorPared, altoPared, anchoPared);
+            //var sizeParedXY = new Vector3(anchoPared, altoPared, grosorPared);
+            //var sizeParedYZ = new Vector3(grosorPared, altoPared, anchoPared);
 
             var relDecoPosXY = new Vector3(100, 100, 10);
             var relDecoPosYZ = new Vector3(10, 100, 100);
@@ -123,22 +123,23 @@ namespace TGC.Group.Model
             //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
             var texture = TgcTexture.createTexture(pathTexturaCaja);
             //var texturaTecho = TgcTexture.createTexture(pathTexturaPiso);
-            var texturaPared = TgcTexture.createTexture(pathTexturaPared);
+            //var texturaPared = TgcTexture.createTexture(pathTexturaPared);
             var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
 
             efecto = TgcShaders.Instance.TgcMeshPointLightShader;
             //efecto = TgcShaders.Instance.TgcMeshSpotLightShader;
 
-            
+
             //Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
-            for (int i=0; i< maze_width; i++)
+            /*for (int i=0; i< maze_width; i++)
             {
                 var posXY = new Vector3((i+0.5f)*anchoPared, 0.5f*altoPared, 0);
                 ParedXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedXY[i].Position = posXY;
                 obstaculos.Add(ParedXY[i]);
                 var posNXY = new Vector3((i + 0.5f) * anchoPared, 0.5f * altoPared, maze_width*anchoPared);
-                ParedNXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
+            var posXY = new Vector3((j + .5f) * anchoPared, .5f * altoPared, i * anchoPared);    
+            ParedNXY[i] = TgcBox.fromSize(sizeParedXY, texturaPared);
                 ParedNXY[i].Position = posNXY;
                 obstaculos.Add(ParedNXY[i]);
             }
@@ -152,8 +153,9 @@ namespace TGC.Group.Model
                 ParedNYZ[i] = TgcBox.fromSize(sizeParedYZ, texturaPared);
                 ParedNYZ[i].Position = posNYZ;
                 obstaculos.Add(ParedNYZ[i]);
-            }
+            } */
             random = new Random();
+            /*
             for (int i = 1; i < maze_width; i++)
             {
                 for(int j = 0; j < maze_height; j++)
@@ -187,7 +189,7 @@ namespace TGC.Group.Model
                         obstaculos.Add(ParedInternaYZ[i - 1, j]);
                     }
                 }
-            }
+            } */
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
@@ -567,6 +569,7 @@ namespace TGC.Group.Model
             //Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
             //Techo.render();
             laberinto3D.Render();
+            /*
             for (int i = 0; i < maze_width; i++)
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);
@@ -593,6 +596,8 @@ namespace TGC.Group.Model
                 ParedNYZ[i].render();
                 if (bMode) ParedNYZ[i].BoundingBox.render();
             }
+            */
+            /*
             for (int i = 1; i < maze_width; i++)
             {
                 for (int j = 0; j < maze_height; j++)
@@ -617,6 +622,7 @@ namespace TGC.Group.Model
                     }
                 }
             }
+            */
             for (int i = 0; i < maze_width; i++)
             {
                 for (int j = 0; j < maze_height; j++)
@@ -707,7 +713,7 @@ namespace TGC.Group.Model
             
         }
 
-        private Matrix transformBox(TgcBox aBox)
+        public Matrix transformBox(TgcBox aBox)
         {
             return Matrix.Scaling(aBox.Scale) *
                             Matrix.RotationYawPitchRoll(aBox.Rotation.Y, aBox.Rotation.X, aBox.Rotation.Z) *

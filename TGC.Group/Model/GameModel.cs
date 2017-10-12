@@ -40,7 +40,10 @@ namespace TGC.Group.Model
         private int paredesXY = 16; //potencia de 2
         private int paredesYZ = 16; //potencia de 2
         private TgcScene[,] currentScene;
+        private List<Vector2> velas;
+        private List<Vector2> esqueletos;
         private bool[,] skeletonsAp;
+        private bool[,] candleAp;
         private TgcPlane Piso { get; set; }
         private TgcPlane Techo { get; set; }
         private TgcBox playerBBox { get; set; }
@@ -67,6 +70,10 @@ namespace TGC.Group.Model
         private bool bFalse = false;
         private TgcFpsCamera camaraFps;
         //private TgcArrow lookingArrow { get; set; }
+        private float ligthIntensity;
+        private int objCount;
+        private int candleCount;
+
 
         private TgcBox ligthBox { get; set; }
 
@@ -87,6 +94,9 @@ namespace TGC.Group.Model
             collide = false;
             currentScene = new TgcScene[paredesXY, paredesYZ];
             skeletonsAp = new bool[paredesXY, paredesYZ];
+            candleAp = new bool[paredesXY, paredesYZ];
+            velas = new List<Vector2>();
+            esqueletos = new List<Vector2>();
             ParedXY = new TgcBox[paredesXY];
             ParedNXY = new TgcBox[paredesXY];
             ParedYZ = new TgcBox[paredesYZ];
@@ -102,7 +112,10 @@ namespace TGC.Group.Model
         var d3dDevice = D3DDevice.Instance.Device;
             godMode = false;
             bMode = false;
-            
+            ligthIntensity = 50f;
+            objCount = 0;
+            candleCount = 0;
+
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
@@ -209,13 +222,16 @@ namespace TGC.Group.Model
             var jumpSpeed = 500f;
 
             var esquletoSize = new Vector3(5,5,5);
+            var candleSize = new Vector3(2, 2, 2);
+
+            var loader = new TgcSceneLoader();
 
             for (int i = 0; i < paredesXY; i++)
             {
                 for (int j = 0; j < paredesYZ; j++)
                 {
-                    if (random.Next(0, 10) < 2) {
-                        loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml", i, j);
+                    if (random.Next(0, 10) < 1) {
+                        loadMesh(MediaDir + "EsqueletoHumano\\Esqueleto-TgcScene.xml",i,j);
                         //No recomendamos utilizar AutoTransform, en juegos complejos se pierde el control. mejor utilizar Transformaciones con matrices.
                         currentScene[i, j].Meshes[0].AutoTransformEnable = true;
                         //Desplazarlo
@@ -223,6 +239,26 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Scale = esquletoSize;
                         currentScene[i, j].Meshes[0].Rotation = new Vector3(0, random.Next(0, 360), 0);
                         skeletonsAp[i, j] = true;
+                        objCount += 1;
+                        esqueletos.Add(new Vector2(i, j));
+                    }
+                    else
+                    {
+                        skeletonsAp[i, j] = false;
+                        if (random.Next(0,20) < 1){
+                            loadMesh(MediaDir + "Vela\\Vela-TgcScene.xml",i,j);
+                            currentScene[i, j].Meshes[0].AutoTransformEnable = true;
+                            currentScene[i, j].Meshes[0].move(512 * i + 256, 150, 512 * j + 256);
+                            currentScene[i, j].Meshes[0].Scale = candleSize;
+                            currentScene[i, j].Meshes[0].Rotation = new Vector3(0, random.Next(0, 360), 0);
+                            candleAp[i, j] = true;
+                            candleCount += 1;
+                            velas.Add(new Vector2(i, j));
+                        }
+                        else
+                        {
+                            candleAp[i, j] = false;
+                        }
                     }
                 }
             }
@@ -443,8 +479,12 @@ namespace TGC.Group.Model
                 this.reset();
             }
 
-            if (Input.keyPressed(Key.B)) bMode = !bMode; 
-            
+            if (Input.keyPressed(Key.B)) bMode = !bMode;
+
+            if (Input.keyPressed(Key.P)) ligthIntensity = 50f;
+
+            ligthIntensity -= 0.02f;
+
             if (moving && !godMode)
             {
                 var lastPos = playerBBox.Position;
@@ -473,6 +513,20 @@ namespace TGC.Group.Model
                     currentCameraPos = camaraFps.Position;
                     playerBBox.Position = currentCameraPos;
 
+                }
+                foreach(var vela in velas)
+                {
+                    var i =  (int)vela.X;
+                    var j = (int)vela.Y;
+                    if (TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, currentScene[i, j].Meshes[0].BoundingBox))
+                    {
+                        ligthIntensity = 50f;
+                        candleCount -= 1;
+                        currentScene[i, j].Meshes[0].dispose();
+                        candleAp[i, j] = false;
+                        velas.Remove(vela);
+                        break;
+                    }
                 }
 
              
@@ -528,7 +582,7 @@ namespace TGC.Group.Model
             efecto.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(ligthBox.Position));
             efecto.SetValue("eyePosition", TgcParserUtils.vector3ToFloat4Array(Camara.Position));
             //efecto.SetValue("spotLightDir", TgcParserUtils.vector3ToFloat3Array(ligthDir));
-            efecto.SetValue("lightIntensity", 30f);
+            efecto.SetValue("lightIntensity", ligthIntensity);
             efecto.SetValue("lightAttenuation", 0.29f);
             //efecto.SetValue("spotLightAngleCos", FastMath.ToRad(18));
             //efecto.SetValue("spotLightExponent", 11f);
@@ -555,7 +609,11 @@ namespace TGC.Group.Model
                     Color.OrangeRed);
                 DrawText.drawText("Con la tecla G se activa modo dios.", 0, 40, Color.OrangeRed);
                 DrawText.drawText("Con la tecla M puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
-            } else
+                DrawText.drawText("Con la tecla P reestablece la intensidad de la luz.", 0, 60, Color.OrangeRed);
+                DrawText.drawText("Intensidad de la luz: " + ligthIntensity, 0, 70, Color.OrangeRed);
+                DrawText.drawText("Hay " + objCount + " esqueletos y " + candleCount + " velas disponibles.", 0, 80, Color.OrangeRed);
+            }
+            else
             {
                 DrawText.drawText("Con la tecla G se desactiva modo dios.", 0, 20, Color.OrangeRed);
                 DrawText.drawText("Utiliza la tecla ESPACIO para elevarse, y CTRL para descender.", 0, 30, Color.OrangeRed);
@@ -641,6 +699,13 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         currentScene[i, j].Meshes[0].render();
                     }
+                    if (candleAp[i, j])
+                    {
+                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
+                        currentScene[i, j].Meshes[0].Effect = efecto;
+                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        currentScene[i, j].Meshes[0].render();
+                    }
                 }
             }
 
@@ -709,6 +774,7 @@ namespace TGC.Group.Model
                 for (int j = 0; j < paredesYZ; j++)
                 {
                    if(skeletonsAp[i,j]) currentScene[i, j].Meshes[0].dispose();
+                   if(candleAp[i,j]) currentScene[i, j].Meshes[0].dispose(); 
                 }
             }
 

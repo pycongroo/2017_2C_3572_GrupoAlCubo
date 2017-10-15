@@ -37,8 +37,8 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        private int paredesXY = 16; //potencia de 2
-        private int paredesYZ = 16; //potencia de 2
+        private int paredesXY = 8; //potencia de 2
+        private int paredesYZ = 8; //potencia de 2
         private TgcScene[,] currentScene;
         private List<Vector2> velas;
         private List<Vector2> esqueletos;
@@ -73,7 +73,7 @@ namespace TGC.Group.Model
         private float ligthIntensity;
         private int objCount;
         private int candleCount;
-
+        private int visibilityLen;//distancia de renderizado
 
         private TgcBox ligthBox { get; set; }
 
@@ -92,6 +92,7 @@ namespace TGC.Group.Model
         {
             obstaculos = new List<TgcBox>();
             collide = false;
+            visibilityLen = 3;
             currentScene = new TgcScene[paredesXY, paredesYZ];
             skeletonsAp = new bool[paredesXY, paredesYZ];
             candleAp = new bool[paredesXY, paredesYZ];
@@ -716,40 +717,40 @@ namespace TGC.Group.Model
             int posiZ;
             int posfX;
             int posfZ;
-            if (posPX - 1 < 0)
+            if (posPX - visibilityLen < 0)
             {
                 posiX = 0;
-                posfX = posPX + 3;
+                posfX = posPX + (visibilityLen+1);
             } else
             {
-                if (posPX + 1 > paredesXY)
+                if (posPX + visibilityLen >= paredesXY)
                 {
-                    posiX = posPX - 3;
+                    posiX = posPX - (visibilityLen + 1);
                     posfX = paredesXY;
                 }
                 else
                 {
-                    posfX = posPX + 2;
-                    posiX = posPX - 1;
+                    posfX = posPX + (visibilityLen + 1);
+                    posiX = posPX - visibilityLen;
                 }
             }
 
-            if (posPZ - 1 < 0)
+            if (posPZ - visibilityLen < 0)
             {
                 posiZ = 0;
-                posfZ = posPZ + 3;
+                posfZ = posPZ + (visibilityLen + 1);
             }
             else
             {
-                if (posPZ + 1 > paredesYZ)
+                if (posPZ + visibilityLen >= paredesYZ)
                 {
-                    posiZ = posPZ - 3;
+                    posiZ = posPZ - (visibilityLen + 1);
                     posfZ = paredesYZ;
                 }
                 else
                 {
-                    posfZ = posPZ + 2;
-                    posiZ = posPZ - 1;
+                    posfZ = posPZ + (visibilityLen + 1);
+                    posiZ = posPZ - visibilityLen;
                 }
             }
             //System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
@@ -760,7 +761,7 @@ namespace TGC.Group.Model
                 {
                     if (wallMatYZ[i, j])
                     {
-                        //System.Console.WriteLine("X:("+i+","+j+")");
+                        //System.Console.WriteLine("X:(" + i + "," + j + ")");
                         ParedInternaYZ[i, j].Transform = transformBox(ParedInternaYZ[i, j]);
                         ParedInternaYZ[i, j].Effect = efecto;
                         auxMesh = ParedInternaYZ[i, j].toMesh("paredInternaXY");

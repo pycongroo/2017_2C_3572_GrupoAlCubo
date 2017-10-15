@@ -37,8 +37,8 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        private int paredesXY = 8; //potencia de 2
-        private int paredesYZ = 8; //potencia de 2
+        private int paredesXY = 16; //potencia de 2
+        private int paredesYZ = 16; //potencia de 2
         private TgcScene[,] currentScene;
         private List<Vector2> velas;
         private List<Vector2> esqueletos;
@@ -74,6 +74,10 @@ namespace TGC.Group.Model
         private int objCount;
         private int candleCount;
         private int visibilityLen;//distancia de renderizado
+        private int posiX;
+        private int posfX;
+        private int posiZ;
+        private int posfZ;
 
         private TgcBox ligthBox { get; set; }
 
@@ -456,11 +460,12 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
+            genRanges((int)(camaraFps.Position.X / anchoPared), (int)(camaraFps.Position.Z / anchoPared));
 
             //var currentCameraPos = Camara.Position;
             //playerBBox.Position = currentCameraPos;
-            
-            
+
+
             var moving = false;
 
             //Adelante
@@ -495,7 +500,26 @@ namespace TGC.Group.Model
                 var currCollide = false;
                 foreach (var obstaculo in obstaculos)
                 {
-                    var result = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, obstaculo.BoundingBox);
+                    bool result;
+                    if (
+                        //((int) (obstaculo.Position.X / anchoPared) >= posiX)&&
+                        //((int) (obstaculo.Position.X / anchoPared) < posfX)&&
+                        //((int) (obstaculo.Position.Z / anchoPared) >= posiZ) &&
+                        //((int) (obstaculo.Position.Z / anchoPared) < posfX)
+                        true)
+                    {
+                        //System.Console.WriteLine(
+                        //    "obstaculo: ("+
+                        //    (int)(obstaculo.Position.X / anchoPared)+
+                        //    ", "+ 
+                        //    (int)(obstaculo.Position.Z / anchoPared)+
+                        //    ")");
+                        result = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, obstaculo.BoundingBox);
+                    } else
+                    {
+                        result = false;
+                    }
+                    
                     if (result)
                     {
                         currCollide = true;
@@ -564,6 +588,52 @@ namespace TGC.Group.Model
                     Camara.SetCamera(new Vector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
                 }
             }*/
+        }
+
+        private void genRanges(int posPX, int posPZ)
+        {
+            System.Console.WriteLine("Position : (" + posPX + ", " + posPZ + ")");
+            //obtener ind X min y max
+
+            if (posPX - visibilityLen < 0)
+            {
+                posiX = 0;
+                posfX = posPX + (visibilityLen + 1);
+            }
+            else
+            {
+                if (posPX + visibilityLen >= paredesXY)
+                {
+                    posiX = posPX - (visibilityLen + 1);
+                    posfX = paredesXY;
+                }
+                else
+                {
+                    posfX = posPX + (visibilityLen + 1);
+                    posiX = posPX - visibilityLen;
+                }
+            }
+
+            if (posPZ - visibilityLen < 0)
+            {
+                posiZ = 0;
+                posfZ = posPZ + (visibilityLen + 1);
+            }
+            else
+            {
+                if (posPZ + visibilityLen >= paredesYZ)
+                {
+                    posiZ = posPZ - (visibilityLen + 1);
+                    posfZ = paredesYZ;
+                }
+                else
+                {
+                    posfZ = posPZ + (visibilityLen + 1);
+                    posiZ = posPZ - visibilityLen;
+                }
+            }
+            //System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
+            //System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
         }
 
         /// <summary>
@@ -661,29 +731,29 @@ namespace TGC.Group.Model
                 auxMesh.dispose();
                 if (bMode) ParedNYZ[i].BoundingBox.render();
             }
-            //renderGrid(iniX,iniZ,finX,finZ);
-            renderGrid((int) (camaraFps.Position.X/anchoPared), (int)(camaraFps.Position.Z / anchoPared));
+            //renderGrid(posX, posZ);
+            renderGrid();
 
-            for (int i = 0; i < paredesXY; i++)
-            {
-                for (int j = 0; j < paredesYZ; j++)
-                {
-                    if (skeletonsAp[i, j])
-                    {
-                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100,100,100));
-                        currentScene[i, j].Meshes[0].Effect = efecto;
-                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
-                        currentScene[i, j].Meshes[0].render();
-                    }
-                    if (candleAp[i, j])
-                    {
-                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
-                        currentScene[i, j].Meshes[0].Effect = efecto;
-                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
-                        currentScene[i, j].Meshes[0].render();
-                    }
-                }
-            }
+            //for (int i = 0; i < paredesXY; i++)
+            //{
+            //    for (int j = 0; j < paredesYZ; j++)
+            //    {
+            //        if (skeletonsAp[i, j])
+            //        {
+            //            currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100,100,100));
+            //            currentScene[i, j].Meshes[0].Effect = efecto;
+            //            currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+            //            currentScene[i, j].Meshes[0].render();
+            //        }
+            //        if (candleAp[i, j])
+            //        {
+            //            currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
+            //            currentScene[i, j].Meshes[0].Effect = efecto;
+            //            currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+            //            currentScene[i, j].Meshes[0].render();
+            //        }
+            //    }
+            //}
 
             //Piso2.render();
             //Piso3.render();
@@ -708,53 +778,14 @@ namespace TGC.Group.Model
             PostRender();
         }
 
-        public void renderGrid(int posPX, int posPZ)
+        public void renderGrid()
         {
             //System.Console.WriteLine("Position : (" + posPX + ", " + posPZ + ")");
             TgcMesh auxMesh = null;
             //obtener ind X min y max
-            int posiX;
-            int posiZ;
-            int posfX;
-            int posfZ;
-            if (posPX - visibilityLen < 0)
-            {
-                posiX = 0;
-                posfX = posPX + (visibilityLen+1);
-            } else
-            {
-                if (posPX + visibilityLen >= paredesXY)
-                {
-                    posiX = posPX - (visibilityLen + 1);
-                    posfX = paredesXY;
-                }
-                else
-                {
-                    posfX = posPX + (visibilityLen + 1);
-                    posiX = posPX - visibilityLen;
-                }
-            }
 
-            if (posPZ - visibilityLen < 0)
-            {
-                posiZ = 0;
-                posfZ = posPZ + (visibilityLen + 1);
-            }
-            else
-            {
-                if (posPZ + visibilityLen >= paredesYZ)
-                {
-                    posiZ = posPZ - (visibilityLen + 1);
-                    posfZ = paredesYZ;
-                }
-                else
-                {
-                    posfZ = posPZ + (visibilityLen + 1);
-                    posiZ = posPZ - visibilityLen;
-                }
-            }
-            //System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
-            //System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
+            System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
+            System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
             for (int i = posiX; i < posfX - 1; i++)
             {
                 for (int j = posiZ; j < posfZ; j++)
@@ -788,6 +819,27 @@ namespace TGC.Group.Model
                         auxMesh.dispose();
                         if (bMode) ParedInternaXY[i - 1, j].BoundingBox.render();
                         //DecoWallYZ[i - 1, j].render();
+                    }
+                }
+            }
+
+            for (int i = posiX; i < posfX; i++)
+            {
+                for (int j = posiZ; j < posfZ; j++)
+                {
+                    if (skeletonsAp[i, j])
+                    {
+                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
+                        currentScene[i, j].Meshes[0].Effect = efecto;
+                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        currentScene[i, j].Meshes[0].render();
+                    }
+                    if (candleAp[i, j])
+                    {
+                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
+                        currentScene[i, j].Meshes[0].Effect = efecto;
+                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        currentScene[i, j].Meshes[0].render();
                     }
                 }
             }

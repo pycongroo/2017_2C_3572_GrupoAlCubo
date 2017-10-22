@@ -507,7 +507,7 @@ namespace TGC.Group.Model
 
             if (Input.keyPressed(Key.P)) ligthIntensity = 50f;
 
-            ligthIntensity -= 0.02f;
+            if(ligthIntensity > 0)ligthIntensity -= 0.02f;
 
             if (moving && !godMode)
             {
@@ -519,24 +519,7 @@ namespace TGC.Group.Model
                 foreach (var obstaculo in obstaculos)
                 {
                     bool result;
-                    if (
-                        //((int) (obstaculo.Position.X / anchoPared) >= posiX)&&
-                        //((int) (obstaculo.Position.X / anchoPared) < posfX)&&
-                        //((int) (obstaculo.Position.Z / anchoPared) >= posiZ) &&
-                        //((int) (obstaculo.Position.Z / anchoPared) < posfX)
-                        true)
-                    {
-                        //System.Console.WriteLine(
-                        //    "obstaculo: ("+
-                        //    (int)(obstaculo.Position.X / anchoPared)+
-                        //    ", "+ 
-                        //    (int)(obstaculo.Position.Z / anchoPared)+
-                        //    ")");
-                        result = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, obstaculo.BoundingBox);
-                    } else
-                    {
-                        result = false;
-                    }
+                    result = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, obstaculo.BoundingBox);
                     
                     if (result)
                     {

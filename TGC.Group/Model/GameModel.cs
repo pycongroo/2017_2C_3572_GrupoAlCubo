@@ -78,6 +78,8 @@ namespace TGC.Group.Model
         private int posfX;
         private int posiZ;
         private int posfZ;
+        private double rangoDiagAngle;
+        private bool optimizationEnabled;
 
         private TgcBox ligthBox { get; set; }
 
@@ -97,6 +99,8 @@ namespace TGC.Group.Model
             obstaculos = new List<TgcBox>();
             collide = false;
             visibilityLen = 3;
+            rangoDiagAngle = 10;
+            optimizationEnabled = true;
             currentScene = new TgcScene[paredesXY, paredesYZ];
             skeletonsAp = new bool[paredesXY, paredesYZ];
             candleAp = new bool[paredesXY, paredesYZ];
@@ -460,7 +464,21 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-            genRanges((int)(camaraFps.Position.X / anchoPared), (int)(camaraFps.Position.Z / anchoPared));
+            if (optimizationEnabled)
+            {
+                Vector3 dirView = camaraFps.LookAt - camaraFps.Position;
+                float tan = dirView.Z / dirView.X;
+                System.Console.WriteLine("Tan: " + tan);
+                double anguloVista = Math.Atan2(dirView.Z, dirView.X) * (180 / Math.PI);
+                System.Console.WriteLine("Angle Tan2: " + anguloVista);
+                genRanges((int)(camaraFps.Position.X / anchoPared), (int)(camaraFps.Position.Z / anchoPared), anguloVista);
+            } else
+            {
+                posiX = 0;
+                posfX = paredesXY;
+                posiZ = 0;
+                posfZ = paredesYZ;
+            }
 
             //var currentCameraPos = Camara.Position;
             //playerBBox.Position = currentCameraPos;
@@ -590,9 +608,9 @@ namespace TGC.Group.Model
             }*/
         }
 
-        private void genRanges(int posPX, int posPZ)
+        private void genRanges(int posPX, int posPZ, double angleView)
         {
-            System.Console.WriteLine("Position : (" + posPX + ", " + posPZ + ")");
+            //System.Console.WriteLine("Position : (" + posPX + ", " + posPZ + ")");
             //obtener ind X min y max
 
             if (posPX - visibilityLen < 0)
@@ -632,8 +650,50 @@ namespace TGC.Group.Model
                     posiZ = posPZ - visibilityLen;
                 }
             }
+            //System.Console.WriteLine("Pre angle-optimization:");
             //System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
             //System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
+            if (angleView>=(-45 + rangoDiagAngle) && angleView < (45 - rangoDiagAngle))
+            {
+                //System.Console.WriteLine("R");
+                posiX = posPX;
+            } else if (angleView>=(45 - rangoDiagAngle) && angleView < (45 + rangoDiagAngle))
+            {
+                //System.Console.WriteLine("R+U");
+                posiX = posPX;
+                posiZ = posPZ;
+            } else if (angleView >= (45 + rangoDiagAngle) && angleView < (135 - rangoDiagAngle))
+            {
+                //System.Console.WriteLine("U");
+                posiZ = posPZ;
+            } else if (angleView >= (135 - rangoDiagAngle) && angleView < (135 + rangoDiagAngle))
+            {
+                //System.Console.WriteLine("L+U");
+                posiZ = posPZ;
+                posfX = posPX + 1;
+            } else if (angleView >= (135 + rangoDiagAngle) || angleView < (-135 - rangoDiagAngle))
+            {
+                //System.Console.WriteLine("L");
+                posfX = posPX + 1;
+            } else if (angleView >= (-135 - rangoDiagAngle) && angleView < (-135 + rangoDiagAngle))
+            {
+                //System.Console.WriteLine("L+D");
+                posfX = posPX + 1;
+                posfZ = posPZ + 1;
+            } else if (angleView >= (-135 + rangoDiagAngle) && angleView < (-45 - rangoDiagAngle))
+            {
+                //System.Console.WriteLine("D");
+                posfZ = posPZ + 1;
+            } else if (angleView >= (-45 - rangoDiagAngle) && angleView < (-45 + rangoDiagAngle))
+            {
+                //System.Console.WriteLine("R+D");
+                posfZ = posPZ + 1;
+                posiX = posPX;
+            }
+            //System.Console.WriteLine("Post angle-optimization:");
+            //System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
+            //System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
+            //System.Console.WriteLine("------------------------------------------------");
         }
 
         /// <summary>

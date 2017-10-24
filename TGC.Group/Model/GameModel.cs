@@ -49,16 +49,20 @@ namespace TGC.Group.Model
         private TgcBox playerBBox { get; set; }
         private bool godMode;
         private bool bMode;
-        private TgcBox[] ParedXY;
-        private TgcBox[] ParedNXY;
-        private TgcBox[] ParedYZ;
-        private TgcBox[] ParedNYZ;
+        //private TgcBox[] ParedXY;
+        //private TgcBox[] ParedNXY;
+        //private TgcBox[] ParedYZ;
+        //private TgcBox[] ParedNYZ;
         private TgcPlane[,] DecoWallXY;
         private TgcPlane[,] DecoWallYZ;
-        private TgcBox[,] ParedInternaXY;
-        private TgcBox[,] ParedInternaYZ;
-        private bool[,] wallMatXY;
-        private bool[,] wallMatYZ;
+        //private TgcBox[,] ParedInternaXY;
+        //private TgcBox[,] ParedInternaYZ;
+        //private bool[,] wallMatXY;
+        //private bool[,] wallMatYZ;
+        private Maze laberinto;
+        private static readonly int ParedHorizontal = 1;
+        private static readonly int ParedVertical = 2;
+        private List<TgcBox> paredes = new List<TgcBox>();
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
@@ -96,6 +100,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
+            laberinto = new Maze(paredesXY, paredesYZ);
             obstaculos = new List<TgcBox>();
             collide = false;
             visibilityLen = 3;
@@ -106,19 +111,19 @@ namespace TGC.Group.Model
             candleAp = new bool[paredesXY, paredesYZ];
             velas = new List<Vector2>();
             esqueletos = new List<Vector2>();
-            ParedXY = new TgcBox[paredesXY];
-            ParedNXY = new TgcBox[paredesXY];
-            ParedYZ = new TgcBox[paredesYZ];
-            ParedNYZ = new TgcBox[paredesYZ];
+            //ParedXY = new TgcBox[paredesXY];
+            //ParedNXY = new TgcBox[paredesXY];
+            //ParedYZ = new TgcBox[paredesYZ];
+            //ParedNYZ = new TgcBox[paredesYZ];
             DecoWallXY = new TgcPlane[paredesXY -1, paredesXY];
             DecoWallYZ = new TgcPlane[paredesYZ -1, paredesYZ];
-            ParedInternaXY = new TgcBox[paredesXY - 1, paredesXY];
-            ParedInternaYZ = new TgcBox[paredesYZ - 1, paredesYZ];
-            wallMatXY = new bool[paredesXY - 1, paredesXY];
-            wallMatYZ = new bool[paredesYZ - 1, paredesYZ];
+            //ParedInternaXY = new TgcBox[paredesXY - 1, paredesXY];
+            //ParedInternaYZ = new TgcBox[paredesYZ - 1, paredesYZ];
+            //wallMatXY = new bool[paredesXY - 1, paredesXY];
+            //wallMatYZ = new bool[paredesYZ - 1, paredesYZ];
             //playerBBox = new TgcSphere(125,texturapiso,new Vector3(0,0,0));
-        //Device de DirectX para crear primitivas.
-        var d3dDevice = D3DDevice.Instance.Device;
+            //Device de DirectX para crear primitivas.
+            var d3dDevice = D3DDevice.Instance.Device;
             godMode = false;
             bMode = false;
             ligthIntensity = 50f;
@@ -129,12 +134,12 @@ namespace TGC.Group.Model
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
             var pathTexturaPiso = MediaDir + "rock_floor2.jpg";
-            var pathTexturaPared = MediaDir + "brick1_1.jpg";
+            //var pathTexturaPared = MediaDir + "brick1_1.jpg";
             var pathTexturaDeco = MediaDir + "cartelera2.jpg";
             var sizeDecoXY = new Vector3(300, 300, 0);
             var sizeDecoYZ = new Vector3(0, 300, 300);
-            var sizeParedXY = new Vector3(anchoPared, altoPared, grosorPared);
-            var sizeParedYZ = new Vector3(grosorPared, altoPared, anchoPared);
+            //var sizeParedXY = new Vector3(anchoPared, altoPared, grosorPared);
+            //var sizeParedYZ = new Vector3(grosorPared, altoPared, anchoPared);
             var sizePiso = new Vector3(512*paredesXY, 20, 512*paredesYZ);
             var relDecoPosXY = new Vector3(100, 100, 10);
             var relDecoPosYZ = new Vector3(10, 100, 100);
@@ -144,7 +149,7 @@ namespace TGC.Group.Model
             var texture = TgcTexture.createTexture(pathTexturaCaja);
             var texturePiso = TgcTexture.createTexture(pathTexturaPiso);
             var texturaTecho = TgcTexture.createTexture(pathTexturaPiso);
-            var texturaPared = TgcTexture.createTexture(pathTexturaPared);
+            //var texturaPared = TgcTexture.createTexture(pathTexturaPared);
             var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
 
             efecto = TgcShaders.Instance.TgcMeshPointLightShader;
@@ -152,6 +157,9 @@ namespace TGC.Group.Model
 
             Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
             Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
+            FabricarParedes();
+            obstaculos.AddRange(this.paredes);
+            /*
             for (int i=0; i< paredesXY; i++)
             {
                 var posXY = new Vector3((i+0.5f)*anchoPared, 0.5f*altoPared, 0);
@@ -174,7 +182,9 @@ namespace TGC.Group.Model
                 ParedNYZ[i].Position = posNYZ;
                 obstaculos.Add(ParedNYZ[i]);
             }
+            */
             random = new Random();
+            /*
             for (int i = 1; i < paredesXY; i++)
             {
                 for(int j = 0; j < paredesYZ; j++)
@@ -209,6 +219,7 @@ namespace TGC.Group.Model
                     }
                 }
             }
+            */
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
@@ -285,6 +296,74 @@ namespace TGC.Group.Model
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
         }
 
+        public TgcBox CrearPared(int orientacion)
+        {
+            float largo = 512;
+            float alto = 512;
+            float ancho = 50;
+            var size = orientacion == ParedVertical ? new Vector3(largo, alto, ancho) :
+                new Vector3(ancho, alto, largo);
+            var textura = TgcTexture.createTexture(MediaDir + "brick1_1.jpg");
+            return TgcBox.fromSize(size, textura);
+
+        }
+
+        public void UbicarPared(TgcBox pared, CellState posicion, Point punto)
+        {
+            Vector3 ubicacion = new Vector3(0, 0, 0);
+            if (posicion == CellState.Top || posicion == CellState.Bottom)
+            {
+                ubicacion = new Vector3(punto.X * 512, 0.5f * 512, (punto.Y + 0.5f) * 512);
+            }
+            if (posicion == CellState.Left || posicion == CellState.Right)
+            {
+                ubicacion = new Vector3((punto.X + 0.5f) * 512, 0.5f * 512, punto.Y * 512);
+            }
+            pared.Position = ubicacion;
+        }
+
+        public void FabricarParedes()
+        {
+            TgcBox pared = null;
+            for (var y = 0; y < this.laberinto.Height; y++)
+            {
+                for (var x = 0; x < this.laberinto.Width; x++)
+                {
+
+                    if (this.laberinto[x, y].HasFlag(CellState.Top))
+                    {
+                        pared = CrearPared(ParedHorizontal);
+                        UbicarPared(pared, CellState.Top, new Point(y, x));
+                        paredes.Add(pared);
+
+                    }
+                    if (this.laberinto[x, y].HasFlag(CellState.Left))
+                    {
+                        pared = CrearPared(ParedVertical);
+                        UbicarPared(pared, CellState.Left, new Point(y, x));
+                        paredes.Add(pared);
+
+                    }
+
+                }
+
+            }
+            for (var x = 0; x < this.laberinto.Width; x++)
+            {
+                pared = CrearPared(ParedHorizontal);
+                UbicarPared(pared, CellState.Bottom, new Point(this.laberinto.Height, x));
+                paredes.Add(pared);
+            }
+            for (var y = 0; y < this.laberinto.Height; y++)
+            {
+                pared = CrearPared(ParedVertical);
+                UbicarPared(pared, CellState.Right, new Point(y, this.laberinto.Width));
+                paredes.Add(pared);
+            }
+
+        }
+
+        /*
         private void genLab(int posX, int posZ, int len)
         {
             //Console.WriteLine("Values: \nposX:" + posX + "\nposZ:" + posZ + "\nlen:" + len);
@@ -455,6 +534,7 @@ namespace TGC.Group.Model
                 //Console.WriteLine("----------------------------------------");
             }
         }
+        */
 
         /// <summary>
         ///     Se llama en cada frame.
@@ -689,7 +769,7 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-            TgcMesh auxMesh = null;
+            //TgcMesh auxMesh = null;
             //var ligthDir = Camara.LookAt;
             //ligthDir.Normalize();
             efecto.SetValue("lightColor", Color.LightYellow.ToArgb());
@@ -740,6 +820,7 @@ namespace TGC.Group.Model
             Techo.Effect = efecto;
             Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
             Techo.render();
+            /*
             for (int i = 0; i < paredesXY; i++)
             {
                 ParedXY[i].Transform = transformBox(ParedXY[i]);
@@ -774,6 +855,7 @@ namespace TGC.Group.Model
                 auxMesh.dispose();
                 if (bMode) ParedNYZ[i].BoundingBox.render();
             }
+            */
             //renderGrid(posX, posZ);
             renderGrid();
 
@@ -829,6 +911,23 @@ namespace TGC.Group.Model
 
             System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
             System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
+            foreach (TgcBox pared in this.paredes)
+            {
+                
+                Point cuadrante = new Point((int) pared.Position.X / 512, (int) pared.Position.Z / 512);
+                if (cuadrante.X >= posiX && cuadrante.X <= posfX && cuadrante.Y >= posiZ && cuadrante.Y <= posfZ)
+                {
+                    pared.Transform = transformBox(pared);
+                    pared.Effect = efecto;
+                    auxMesh = pared.toMesh("pared");
+                    pared.Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
+                    pared.render();
+                    auxMesh.dispose();
+                    if (bMode) pared.BoundingBox.render();
+                }
+            }
+
+            /*
             for (int i = posiX; i < posfX - 1; i++)
             {
                 for (int j = posiZ; j < posfZ; j++)
@@ -865,7 +964,7 @@ namespace TGC.Group.Model
                     }
                 }
             }
-
+            */
             for (int i = posiX; i < posfX; i++)
             {
                 for (int j = posiZ; j < posfZ; j++)
@@ -899,6 +998,11 @@ namespace TGC.Group.Model
             //Box.dispose();
             playerBBox.dispose();
 
+            foreach (TgcBox pared in this.paredes)
+            {
+                pared.dispose();
+            }
+            /*
             for (int i = 1; i < paredesXY; i++)
             {
                 for (int j = 0; j < paredesYZ; j++)
@@ -924,6 +1028,7 @@ namespace TGC.Group.Model
                 ParedYZ[i].dispose();
                 ParedNYZ[i].dispose();
             }
+            */
 
             for (int i = 0; i < paredesXY; i++)
             {

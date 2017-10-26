@@ -84,6 +84,7 @@ namespace TGC.Group.Model
         private int posfZ;
         private double rangoDiagAngle;
         private bool optimizationEnabled;
+        private List<Enemigo> enemigos = new List<Enemigo>();
 
         private TgcBox ligthBox { get; set; }
 
@@ -294,6 +295,8 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
+
+            enemigos.Add(new Enemigo(10, this.laberinto.FindPath(new Point(0, 0), new Point(5, 5))));
         }
 
         public TgcBox CrearPared(int orientacion)
@@ -669,6 +672,20 @@ namespace TGC.Group.Model
                     Camara.SetCamera(new Vector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
                 }
             }*/
+            
+            foreach (Enemigo enemigo in this.enemigos)
+            {
+                try
+                {
+                    enemigo.Mover(ElapsedTime);
+                } catch (Exception e)
+                {
+                    // TODO Eliminar el enemigo ya que terminó su recorrido.
+                }
+                
+            }
+            
+            
         }
 
         private void genRanges(int posPX, int posPZ, double angleView)
@@ -896,10 +913,14 @@ namespace TGC.Group.Model
             //Finalmente invocamos al render de la caja
             //Box.render();
             //Box.BoundingBox.render();
-             
+
             //currentScene.Meshes[0].render();
-            
+
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
+            foreach(Enemigo enemigo in this.enemigos) 
+            {
+                enemigo.Render();
+            }
             PostRender();
         }
 

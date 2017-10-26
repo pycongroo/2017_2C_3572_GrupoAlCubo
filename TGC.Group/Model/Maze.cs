@@ -252,7 +252,11 @@ namespace TGC.Group.Model
 
             public bool recursiveSolve(int x, int y, bool[,] wasHere)
             {
-                if (x == end.X && y == end.Y) return true; // If you reached the end
+                if (x == end.X && y == end.Y)
+                {
+                    path.Push(new Point(x, y));
+                    return true; // If you reached the end
+                }
                 if (maze[x, y] == Maze.WALL || wasHere[x, y]) return false;
                 // If you are on a wall or already were here
                 wasHere[x, y] = true;

@@ -12,10 +12,10 @@ namespace TGC.Group.Model
 {
     public enum Direccion
     {
-        Sur,
-        Este,
-        Oeste,
-        Norte,
+        Sur = 0,
+        Este = 1,
+        Norte = 2,
+        Oeste = 3,
     }
 
     public class Enemigo
@@ -25,11 +25,34 @@ namespace TGC.Group.Model
         private List<Point> recorrido;
         private TgcBox representacion;
         private Direccion sentidoAnterior;
+        private static readonly float[,] rotacionCardinal;
+
+        static Enemigo()
+        {
+            rotacionCardinal = new float[4, 4];
+            for (int i = 0; i < 4; i++)
+            {
+                rotacionCardinal[i, i] = 0;
+            }
+            rotacionCardinal[(int)Direccion.Sur, (int)Direccion.Este] = -FastMath.PI_HALF;
+            rotacionCardinal[(int)Direccion.Este, (int)Direccion.Sur] = FastMath.PI_HALF;
+            rotacionCardinal[(int)Direccion.Sur, (int)Direccion.Norte] = FastMath.PI;
+            rotacionCardinal[(int)Direccion.Norte, (int)Direccion.Sur] = -FastMath.PI;
+            rotacionCardinal[(int)Direccion.Sur, (int)Direccion.Oeste] = FastMath.PI_HALF;
+            rotacionCardinal[(int)Direccion.Oeste, (int)Direccion.Sur] = -FastMath.PI_HALF;
+            rotacionCardinal[(int)Direccion.Este, (int)Direccion.Norte] = -FastMath.PI_HALF;
+            rotacionCardinal[(int)Direccion.Norte, (int)Direccion.Este] = FastMath.PI_HALF;
+            rotacionCardinal[(int)Direccion.Este, (int)Direccion.Oeste] = -FastMath.PI;
+            rotacionCardinal[(int)Direccion.Oeste, (int)Direccion.Este] = FastMath.PI;
+            rotacionCardinal[(int)Direccion.Norte, (int)Direccion.Oeste] = -FastMath.PI_HALF;
+            rotacionCardinal[(int)Direccion.Oeste, (int)Direccion.Norte] = FastMath.PI_HALF;
+        }
 
         public Enemigo(float velocidad, List<Point> recorrido)
         {
             this.velocidad = velocidad;
             this.recorrido = recorrido;
+            this.sentidoAnterior = Direccion.Sur;
             Representar();
         }
 
@@ -133,12 +156,7 @@ namespace TGC.Group.Model
             // TODO Verificar que el recorrido posea al menos 2 elementos.
             Direccion hacia = Sentido(donde, Proximo(donde));
             
-            float angulo = 0;
-            // TODO Corregir el ángulo a partir del sentido anterior. Por defecto toma el sur.
-            if (hacia == Direccion.Sur) angulo = 0;
-            if (hacia == Direccion.Norte) angulo = FastMath.PI;
-            if (hacia == Direccion.Este) angulo = -FastMath.PI_HALF;
-            if (hacia == Direccion.Oeste) angulo = FastMath.PI_HALF;
+            float angulo = Enemigo.rotacionCardinal[(int)this.sentidoAnterior, (int)hacia];
 
             this.sentidoAnterior = hacia;
 

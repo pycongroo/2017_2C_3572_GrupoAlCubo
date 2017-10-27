@@ -296,7 +296,7 @@ namespace TGC.Group.Model
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
 
-            enemigos.Add(new Enemigo(10, this.laberinto.FindPath(new Point(0, 0), new Point(5, 5))));
+            enemigos.Add(new Enemigo(50, this.laberinto.FindPath(new Point(0, 0), new Point(5, 5))));
         }
 
         public TgcBox CrearPared(int orientacion)

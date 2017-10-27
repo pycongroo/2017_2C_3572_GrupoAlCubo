@@ -82,23 +82,24 @@ namespace TGC.Group.Model
                 }
                 
             }
-                float cantidad = tiempo * velocidad > 20 || tiempo * velocidad < 10 ? 10 : tiempo * velocidad;
-                if (hacia == Direccion.Sur)
-                {
-                    representacion.move(0, 0, -cantidad);
-                }
-                if (hacia == Direccion.Norte)
-                {
-                    representacion.move(0, 0, cantidad);
-                }
-                if (hacia == Direccion.Este)
-                {
-                    representacion.move(cantidad, 0, 0);
-                }
-                if (hacia == Direccion.Oeste)
-                {
-                    representacion.move(-cantidad, 0, 0);
-                }
+            float tiempoAcotado = tiempo > 2 ? 2 : tiempo;
+            float cantidad = tiempoAcotado * velocidad;
+            if (hacia == Direccion.Sur)
+            {
+                representacion.move(0, 0, -cantidad);
+            }
+            if (hacia == Direccion.Norte)
+            {
+                representacion.move(0, 0, cantidad);
+            }
+            if (hacia == Direccion.Este)
+            {
+                representacion.move(cantidad, 0, 0);
+            }
+            if (hacia == Direccion.Oeste)
+            {
+                representacion.move(-cantidad, 0, 0);
+            }
             
         }
 

@@ -295,8 +295,8 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
-
-            enemigos.Add(new Enemigo(50, this.laberinto.FindPath(new Point(0, 0), new Point(5, 5))));
+            TgcMesh enemigoMesh = loader.loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
+            enemigos.Add(new Enemigo(enemigoMesh, 100, this.laberinto.FindPath(new Point(0, 0), new Point(5, 5))));
         }
 
         public TgcBox CrearPared(int orientacion)

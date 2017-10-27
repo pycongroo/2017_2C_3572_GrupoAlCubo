@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TGC.Core.Geometry;
+using TGC.Core.SceneLoader;
 using TGC.Core.Utils;
 
 namespace TGC.Group.Model
@@ -23,7 +24,7 @@ namespace TGC.Group.Model
         private const int LONGITUD_SECTOR = 512;
         private float velocidad;
         private List<Point> recorrido;
-        private TgcBox representacion;
+        private TgcMesh representacion;
         private Direccion sentidoAnterior;
         private static readonly float[,] rotacionCardinal;
 
@@ -48,8 +49,9 @@ namespace TGC.Group.Model
             rotacionCardinal[(int)Direccion.Oeste, (int)Direccion.Norte] = FastMath.PI_HALF;
         }
 
-        public Enemigo(float velocidad, List<Point> recorrido)
+        public Enemigo(TgcMesh mesh, float velocidad, List<Point> recorrido)
         {
+            this.representacion = mesh;
             this.velocidad = velocidad;
             this.recorrido = recorrido;
             this.sentidoAnterior = Direccion.Sur;
@@ -58,10 +60,12 @@ namespace TGC.Group.Model
 
         private void Representar()
         {
-            var size = new Vector3(100, 200, 40);
+           
             var color = Color.Red;
-            representacion = TgcBox.fromSize(size, color);
+            //representacion = TgcBox.fromSize(size, color);
             representacion.AutoTransformEnable = true;
+            representacion.setColor(color);
+            
             Posicionar(this.recorrido[0]);
 
         }
@@ -174,14 +178,16 @@ namespace TGC.Group.Model
                 posicion.X = posicion.X + deltaZ;
             }
 
-
+            var size = new Vector3(8, 8, 8);
+            representacion.Scale = size;
             representacion.rotateY(angulo);
             representacion.Position = posicion;
+
         }
 
         private Vector3 TraducirCoordenada(Point coordenada)
         {
-            return new Vector3(coordenada.X * LONGITUD_SECTOR, 100, coordenada.Y * LONGITUD_SECTOR);
+            return new Vector3(coordenada.X * LONGITUD_SECTOR, -40, coordenada.Y * LONGITUD_SECTOR);
         }
 
         public void Render()

@@ -198,7 +198,7 @@ namespace TGC.Group.Model
             Tgc3dSound sound;
 
             sound = new Tgc3dSound(MediaDir + "sound\\viento helado.wav", Vector3.Empty, DirectSound.DsDevice);
-            sound.MinDistance = 300f;
+            sound.MinDistance = 375f;
             sound.play(true);
             sonidos.Add(sound);
             sound = new Tgc3dSound(MediaDir + "sound\\risa infantil.wav", Vector3.Empty, DirectSound.DsDevice);
@@ -264,7 +264,7 @@ namespace TGC.Group.Model
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
             TgcMesh enemigoMesh = loader.loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
-            enemigos.Add(new Enemigo(enemigoMesh, 100, this.laberinto.FindPath(new Point(2, 5), new Point(7, 12)), new Vector3(5,5,5)));
+            enemigos.Add(new Enemigo(enemigoMesh, 300, this.laberinto.FindPath(new Point(0, 0), new Point(7, 12)), new Vector3(5,5,5)));
         }
 
         public TgcBox CrearPared(int orientacion)

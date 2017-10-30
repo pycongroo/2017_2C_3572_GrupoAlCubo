@@ -42,9 +42,11 @@ namespace TGC.Group.Model
         private int paredesYZ = 16; //potencia de 2
         private TgcScene[,] currentScene;
         private List<Vector2> velas;
+        private List<Vector2> llaves;
         private List<Vector2> esqueletos;
         private bool[,] skeletonsAp;
         private bool[,] candleAp;
+        private bool[,] keyAp;
         private TgcPlane Piso { get; set; }
         private TgcPlane Techo { get; set; }
         private TgcBox playerBBox { get; set; }
@@ -81,6 +83,7 @@ namespace TGC.Group.Model
         private float ligthIntensity;
         private int objCount;
         private int candleCount;
+        private int keyCount;
         private int visibilityLen;//distancia de renderizado
         private int posiX;
         private int posfX;
@@ -117,7 +120,9 @@ namespace TGC.Group.Model
             currentScene = new TgcScene[paredesXY, paredesYZ];
             skeletonsAp = new bool[paredesXY, paredesYZ];
             candleAp = new bool[paredesXY, paredesYZ];
+            keyAp = new bool[paredesXY, paredesYZ];
             velas = new List<Vector2>();
+            llaves = new List<Vector2>();
             esqueletos = new List<Vector2>();
             //ParedXY = new TgcBox[paredesXY];
             //ParedNXY = new TgcBox[paredesXY];
@@ -137,6 +142,7 @@ namespace TGC.Group.Model
             ligthIntensity = 50f;
             objCount = 0;
             candleCount = 0;
+            keyCount = 0;
 
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -212,6 +218,7 @@ namespace TGC.Group.Model
 
             var esquletoSize = new Vector3(5,5,5);
             var candleSize = new Vector3(2, 2, 2);
+            var keySize = new Vector3(2, 2, 2);
 
             var loader = new TgcSceneLoader();
 
@@ -247,6 +254,22 @@ namespace TGC.Group.Model
                         else
                         {
                             candleAp[i, j] = false;
+
+                            if (random.Next(0, 20) < 1)
+                            {
+                                loadMesh(MediaDir + "Vela\\Vela-TgcScene.xml", i, j);
+                                currentScene[i, j].Meshes[0].AutoTransformEnable = true;
+                                currentScene[i, j].Meshes[0].move(512 * i + 256, 150, 512 * j + 256);
+                                currentScene[i, j].Meshes[0].Scale = keySize;
+                                currentScene[i, j].Meshes[0].Rotation = new Vector3(0, random.Next(0, 360), 0);
+                                keyAp[i, j] = true;
+                                keyCount += 1;
+                                velas.Add(new Vector2(i, j));
+                            }
+                            else
+                            {
+                                keyAp[i, j] = false;
+                            }
                         }
                     }
                 }
@@ -465,10 +488,24 @@ namespace TGC.Group.Model
                         break;
                     }
                 }
+                foreach (var llave in llaves)
+                {
+                    var i = (int)llave.X;
+                    var j = (int)llave.Y;
+                    if (TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, currentScene[i, j].Meshes[0].BoundingBox))
+                    {
+                        ligthIntensity = 50f;
+                        keyCount -= 1;
+                        currentScene[i, j].Meshes[0].dispose();
+                        keyAp[i, j] = false;
+                        velas.Remove(llave);
+                        break;
+                    }
+                }
 
-             
+
                 //Si hubo colision, restaurar la posicion anterior
-                
+
 
                 //Hacer que la camara siga al personaje en su nueva posicion
                 //camaraInterna.Target = personaje.Position;
@@ -651,6 +688,7 @@ namespace TGC.Group.Model
                 DrawText.drawText("Recogiendo velas se reestablece la intensidad de la luz( o presionando la tecla P).", 0, 60, Color.OrangeRed);
                 DrawText.drawText("Intensidad de la luz: " + ligthIntensity, 0, 70, Color.OrangeRed);
                 DrawText.drawText("Hay " + objCount + " esqueletos y " + candleCount + " velas disponibles.", 0, 80, Color.OrangeRed);
+                DrawText.drawText("Hay " + keyCount + " llaves disponibles.", 0, 90, Color.OrangeRed);
             }
             else
             {
@@ -843,6 +881,13 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         currentScene[i, j].Meshes[0].render();
                     }
+                    if (keyAp[i, j])
+                    {
+                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(200, 200, 200));
+                        currentScene[i, j].Meshes[0].Effect = efecto;
+                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        currentScene[i, j].Meshes[0].render();
+                    }
                 }
             }
         }
@@ -900,6 +945,7 @@ namespace TGC.Group.Model
                 {
                    if(skeletonsAp[i,j]) currentScene[i, j].Meshes[0].dispose();
                    if(candleAp[i,j]) currentScene[i, j].Meshes[0].dispose(); 
+                   if(keyAp[i, j]) currentScene[i, j].Meshes[0].dispose();
                 }
             }
 

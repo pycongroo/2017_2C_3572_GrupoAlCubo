@@ -63,11 +63,14 @@ namespace TGC.Group.Model
         private static readonly int ParedHorizontal = 1;
         private static readonly int ParedVertical = 2;
         private List<TgcBox> paredes = new List<TgcBox>();
+        private List<TgcBox> paredesExternas = new List<TgcBox>();
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
         private List<TgcBox> obstaculos;
         private bool collide;
+        private bool enemColl;
+        private bool lose;
         private Random random;
         //booleanos para pruebas
         private bool bTrue = true;
@@ -160,6 +163,7 @@ namespace TGC.Group.Model
             Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
             FabricarParedes();
             obstaculos.AddRange(this.paredes);
+            obstaculos.AddRange(paredesExternas);
             /*
             for (int i=0; i< paredesXY; i++)
             {
@@ -241,6 +245,8 @@ namespace TGC.Group.Model
             var lookAt = Vector3.Empty;
             var moveSpeed = 850f;
             var jumpSpeed = 500f;
+            enemColl = false;
+            lose = false;
 
             var esquletoSize = new Vector3(5,5,5);
             var candleSize = new Vector3(2, 2, 2);
@@ -296,7 +302,7 @@ namespace TGC.Group.Model
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
             TgcMesh enemigoMesh = loader.loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
-            enemigos.Add(new Enemigo(enemigoMesh, 100, this.laberinto.FindPath(new Point(0, 0), new Point(5, 5))));
+            enemigos.Add(new Enemigo(enemigoMesh, 100, this.laberinto.FindPath(new Point(0, 0), new Point(5, 5)), new Vector3(5,5,5)));
         }
 
         public TgcBox CrearPared(int orientacion)
@@ -333,14 +339,14 @@ namespace TGC.Group.Model
                 for (var x = 0; x < this.laberinto.Width; x++)
                 {
 
-                    if (this.laberinto[x, y].HasFlag(CellState.Top))
+                    if (this.laberinto[x, y].HasFlag(CellState.Top) && y>0)
                     {
                         pared = CrearPared(ParedHorizontal);
                         UbicarPared(pared, CellState.Top, new Point(y, x));
                         paredes.Add(pared);
 
                     }
-                    if (this.laberinto[x, y].HasFlag(CellState.Left))
+                    if (this.laberinto[x, y].HasFlag(CellState.Left) && x>0)
                     {
                         pared = CrearPared(ParedVertical);
                         UbicarPared(pared, CellState.Left, new Point(y, x));
@@ -355,13 +361,19 @@ namespace TGC.Group.Model
             {
                 pared = CrearPared(ParedHorizontal);
                 UbicarPared(pared, CellState.Bottom, new Point(this.laberinto.Height, x));
-                paredes.Add(pared);
+                paredesExternas.Add(pared);
+                pared = CrearPared(ParedHorizontal);
+                UbicarPared(pared, CellState.Top, new Point(0, x));
+                paredesExternas.Add(pared);
             }
             for (var y = 0; y < this.laberinto.Height; y++)
             {
                 pared = CrearPared(ParedVertical);
                 UbicarPared(pared, CellState.Right, new Point(y, this.laberinto.Width));
-                paredes.Add(pared);
+                paredesExternas.Add(pared);
+                pared = CrearPared(ParedVertical);
+                UbicarPared(pared, CellState.Left, new Point(y, 0));
+                paredesExternas.Add(pared);
             }
 
         }
@@ -566,7 +578,6 @@ namespace TGC.Group.Model
             //var currentCameraPos = Camara.Position;
             //playerBBox.Position = currentCameraPos;
 
-
             var moving = false;
 
             //Adelante
@@ -590,7 +601,21 @@ namespace TGC.Group.Model
 
             if (Input.keyPressed(Key.P)) ligthIntensity = 50f;
 
-            if(ligthIntensity > 0)ligthIntensity -= 0.02f;
+            if(ligthIntensity > 0)ligthIntensity -= 0.005f;
+
+            foreach(Enemigo enemigo in enemigos)
+            {
+                bool result = false;
+                result = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, enemigo.representacion.BoundingBox);
+                if (result && enemColl)
+                {
+                    ligthIntensity -= 10;
+                    enemColl = false;
+                }
+                if (!result) enemColl = true;
+            }
+
+            if (ligthIntensity <= 0) lose = true;
 
             if (moving && !godMode)
             {
@@ -874,6 +899,17 @@ namespace TGC.Group.Model
             }
             */
             //renderGrid(posX, posZ);
+            foreach(TgcBox obj in this.paredesExternas)
+            {
+                obj.Transform = transformBox(obj);
+                obj.Effect = efecto;
+                var auxMesh = obj.toMesh("pared");
+                obj.Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
+                obj.render();
+                auxMesh.dispose();
+                if (bMode) obj.BoundingBox.render();
+            }
+
             renderGrid();
 
             //for (int i = 0; i < paredesXY; i++)
@@ -919,7 +955,8 @@ namespace TGC.Group.Model
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             foreach(Enemigo enemigo in this.enemigos) 
             {
-                enemigo.Render();
+                
+                enemigo.Render(efecto);
             }
             PostRender();
         }
@@ -934,7 +971,6 @@ namespace TGC.Group.Model
             System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
             foreach (TgcBox pared in this.paredes)
             {
-                
                 Point cuadrante = new Point((int) pared.Position.X / 512, (int) pared.Position.Z / 512);
                 if (cuadrante.X >= posiX && cuadrante.X <= posfX && cuadrante.Y >= posiZ && cuadrante.Y <= posfZ)
                 {
@@ -1023,6 +1059,10 @@ namespace TGC.Group.Model
             {
                 pared.dispose();
             }
+            foreach (TgcBox pared in this.paredesExternas)
+            {
+                    pared.dispose();
+            }
             /*
             for (int i = 1; i < paredesXY; i++)
             {
@@ -1058,6 +1098,11 @@ namespace TGC.Group.Model
                    if(skeletonsAp[i,j]) currentScene[i, j].Meshes[0].dispose();
                    if(candleAp[i,j]) currentScene[i, j].Meshes[0].dispose(); 
                 }
+            }
+
+            foreach (Enemigo enemigo in enemigos)
+            {
+                enemigo.Dispose();
             }
 
         }

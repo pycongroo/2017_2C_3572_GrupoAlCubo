@@ -1,4 +1,5 @@
 ﻿using Microsoft.DirectX;
+using Microsoft.DirectX.Direct3D;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using TGC.Core.Geometry;
 using TGC.Core.SceneLoader;
 using TGC.Core.Utils;
+using TGC.Core.Shaders;
+
 
 namespace TGC.Group.Model
 {
@@ -24,7 +27,7 @@ namespace TGC.Group.Model
         private const int LONGITUD_SECTOR = 512;
         private float velocidad;
         private List<Point> recorrido;
-        private TgcMesh representacion;
+        public TgcMesh representacion;
         private Direccion sentidoAnterior;
         private static readonly float[,] rotacionCardinal;
 
@@ -49,9 +52,10 @@ namespace TGC.Group.Model
             rotacionCardinal[(int)Direccion.Oeste, (int)Direccion.Norte] = FastMath.PI_HALF;
         }
 
-        public Enemigo(TgcMesh mesh, float velocidad, List<Point> recorrido)
+        public Enemigo(TgcMesh mesh, float velocidad, List<Point> recorrido, Vector3 scale)
         {
             this.representacion = mesh;
+            this.representacion.Scale = scale;
             this.velocidad = velocidad;
             this.recorrido = recorrido;
             this.sentidoAnterior = Direccion.Sur;
@@ -177,8 +181,10 @@ namespace TGC.Group.Model
                 posicion.Z = posicion.Z + deltaX;
                 posicion.X = posicion.X + deltaZ;
             }
-
-            var size = new Vector3(8, 8, 8);
+            posicion.Y += 80;
+            posicion.X += 85;
+            posicion.Z += 85;
+            var size = new Vector3(6, 6, 6);
             representacion.Scale = size;
             representacion.rotateY(angulo);
             representacion.Position = posicion;
@@ -190,9 +196,19 @@ namespace TGC.Group.Model
             return new Vector3(coordenada.X * LONGITUD_SECTOR, -40, coordenada.Y * LONGITUD_SECTOR);
         }
 
-        public void Render()
+        public void Render(Effect efecto)
         {
+            if (efecto != null)
+            {
+                representacion.Effect = efecto;
+                representacion.Technique = TgcShaders.Instance.getTgcMeshTechnique(representacion.RenderType);
+            }
             this.representacion.render();
+        }
+
+        public void Dispose()
+        {
+            representacion.dispose();
         }
     }
 }

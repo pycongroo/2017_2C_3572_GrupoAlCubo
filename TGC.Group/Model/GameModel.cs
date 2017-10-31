@@ -92,6 +92,7 @@ namespace TGC.Group.Model
         private double rangoDiagAngle;
         private bool optimizationEnabled;
         private List<Enemigo> enemigos = new List<Enemigo>();
+        private TgcBox exitGate;
 
         private TgcBox ligthBox { get; set; }
 
@@ -219,6 +220,14 @@ namespace TGC.Group.Model
             var esquletoSize = new Vector3(5,5,5);
             var candleSize = new Vector3(2, 2, 2);
             var keySize = new Vector3(2, 2, 2);
+            var gateSize = new Vector3(anchoPared, altoPared, grosorPared * 2);
+            var textura = TgcTexture.createTexture(MediaDir + "rocks.jpg");
+            //var exitPos = new Vector3(anchoPared * (paredesXY-0.5f), anchoPared * paredesXY, altoPared * 0.5f);
+            var exitPos = new Vector3(0, 0, 0);
+            exitGate = TgcBox.fromSize(exitPos, gateSize);
+            //exitGate = TgcBox.fromSize(gateSize, textura);
+            //exitGate.Position = exitPos;
+            exitGate.setTexture(textura);
 
             var loader = new TgcSceneLoader();
 
@@ -799,6 +808,7 @@ namespace TGC.Group.Model
                 
                 enemigo.Render(efecto);
             }
+            exitGate.render();
             PostRender();
         }
 
@@ -899,6 +909,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
+            exitGate.dispose();
             //Dispose de la caja.
             //Box.dispose();
             playerBBox.dispose();

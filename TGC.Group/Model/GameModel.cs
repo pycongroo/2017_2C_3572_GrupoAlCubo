@@ -15,7 +15,7 @@ using TGC.Core.Collision;
 using TGC.Core.Fog;
 using TGC.Core.Shaders;
 using TGC.Core.Sound;
-
+using TGC.Core.Text;
 namespace TGC.Group.Model
 {
     /// <summary>
@@ -37,7 +37,9 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
-
+        private TgcText2D titulo;
+        private TgcText2D instruccionesText;
+        private TgcText2D loseText;
         private int paredesXY = 16; //potencia de 2
         private int paredesYZ = 16; //potencia de 2
         private TgcScene[,] currentScene;
@@ -73,7 +75,9 @@ namespace TGC.Group.Model
         private List<TgcBox> obstaculos;
         private bool collide;
         private bool enemColl;
+        private bool beggining;
         private bool lose;
+        private bool win;
         private Random random;
         //booleanos para pruebas
         private bool bTrue = true;
@@ -103,6 +107,7 @@ namespace TGC.Group.Model
 
         private List<Tgc3dSound> sonidos;
         private TgcStaticSound loseSound;
+
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -145,6 +150,25 @@ namespace TGC.Group.Model
             candleCount = 0;
             keyCount = 0;
 
+            //instrucciones al inicio del juego
+            instruccionesText = new TgcText2D();
+            instruccionesText.Text = "Utiliza el mouse y W/A/S/D para moverte. Consigue 3 llaves para abrir la puerta y salir del laberinto. Si tu luz se acaba, pierdes. Cruzarte con el esqueleto andante disminuira tu luz. Presiona SPACE para comenzar.";
+            instruccionesText.Position = new System.Drawing.Point(5,250);
+            instruccionesText.Color = Color.Red;
+            instruccionesText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 50, FontStyle.Regular));
+
+            titulo = new TgcText2D();
+            titulo.Text = "DREADMAZE";
+            titulo.Position = new System.Drawing.Point(50, 120);
+            titulo.Color = Color.Red;
+            titulo.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,80, FontStyle.Regular));
+
+            loseText = new TgcText2D();
+            loseText.Text = "GAME OVER";
+            loseText.Position = new System.Drawing.Point(50, 300);
+            loseText.Color = Color.Red;
+            loseText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 80, FontStyle.Regular));
+
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
@@ -177,7 +201,6 @@ namespace TGC.Group.Model
             obstaculos.AddRange(paredesExternas);
             
             random = new Random();
-            
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
@@ -200,12 +223,14 @@ namespace TGC.Group.Model
             var jumpSpeed = 500f;
             enemColl = false;
             lose = false;
+            beggining = true;
+            win = false;
 
             sonidos = new List<Tgc3dSound>();
             Tgc3dSound sound;
 
             sound = new Tgc3dSound(MediaDir + "sound\\viento helado.wav", Vector3.Empty, DirectSound.DsDevice);
-            sound.MinDistance = 375f;
+            sound.MinDistance = 220f;
             sound.play(true);
             sonidos.Add(sound);
             sound = new Tgc3dSound(MediaDir + "sound\\risa infantil.wav", Vector3.Empty, DirectSound.DsDevice);
@@ -307,7 +332,7 @@ namespace TGC.Group.Model
             }
             this.enemigos.Clear();
             TgcMesh enemigoMesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
-            enemigos.Add(new Enemigo(enemigoMesh, 300, this.laberinto.FindPath(new Point(0, 0), new Point(7, 12)), new Vector3(5, 5, 5)));
+            enemigos.Add(new Enemigo(enemigoMesh, 420, this.laberinto.FindPath(new Point(random.Next(0,paredesXY-1), random.Next(0, paredesYZ - 1)), new Point(random.Next(0, paredesXY - 1), random.Next(0, paredesYZ - 1))), new Vector3(5, 5, 5)));
 
         }
 
@@ -393,6 +418,17 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
+
+            if (beggining)
+            {
+                if (Input.keyPressed(Key.Space))
+                {
+                    beggining = false;
+                    camaraFps.LockCam = true;
+                    camaraFps.playing = true;
+                }
+            }
+
             if (lose)
             {
                 loseSound.play();
@@ -431,9 +467,14 @@ namespace TGC.Group.Model
                 godMode = !godMode;
             }
 
-            if (Input.keyPressed(Key.M))
+            if ((lose && Input.keyPressed(Key.M)) || (camaraFps.LockCam && Input.keyPressed(Key.M)))
             {
                 this.reset();
+            }
+
+            if ((lose && Input.keyPressed(Key.E)) || (!camaraFps.LockCam && Input.keyPressed(Key.E)))
+            {
+                Program.Terminate();
             }
 
             if (Input.keyPressed(Key.B)) bMode = !bMode;
@@ -449,7 +490,7 @@ namespace TGC.Group.Model
                 result = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, enemigo.representacion.BoundingBox);
                 if (result && enemColl)
                 {
-                    ligthIntensity -= 10;
+                    ligthIntensity -= 20;
                     enemColl = false;
                 }
                 if (!result) enemColl = true;
@@ -559,23 +600,28 @@ namespace TGC.Group.Model
                 }
             }*/
 
-            List<Enemigo> aRemover = new List<Enemigo>();
-            foreach (Enemigo enemigo in this.enemigos)
+            if (!lose && !win && !beggining)
             {
-                try
+                List<Enemigo> aRemover = new List<Enemigo>();
+                foreach (Enemigo enemigo in this.enemigos)
                 {
-                    enemigo.Mover(ElapsedTime);
-                } catch (Exception e)
-                {
-                    aRemover.Add(enemigo);
-                
+                    try
+                    {
+                        enemigo.Mover(ElapsedTime);
+                    }
+                    catch (Exception e)
+                    {
+                        aRemover.Add(enemigo);
+
+                    }
+
                 }
-                
-            }
-            foreach (var item in aRemover)
-            {
-                item.Dispose();
-                this.enemigos.Remove(item);
+
+                foreach (var item in aRemover)
+                {
+                    item.Dispose();
+                    this.enemigos.Remove(item);
+                }
             }
             
             
@@ -705,7 +751,20 @@ namespace TGC.Group.Model
             efecto.SetValue("materialSpecularExp", 10f);
 
             //Dibuja un texto por pantalla
-            if (!godMode)
+
+            if (beggining)
+            {
+                instruccionesText.render();
+                titulo.render();
+            }
+
+
+            if (lose)
+            {
+                loseText.render();
+            }
+
+            /*if (!godMode)
             {
                 DrawText.drawText("Con la tecla M se Reinicia el juego.", 0, 20, Color.OrangeRed);
                 DrawText.drawText(
@@ -724,49 +783,14 @@ namespace TGC.Group.Model
                 DrawText.drawText("Utiliza la tecla ESPACIO para elevarse, y CTRL para descender.", 0, 30, Color.OrangeRed);
                 DrawText.drawText("En modo dios no hay deteccion de colisiones.", 0, 40, Color.OrangeRed);
                 DrawText.drawText("Con la tecla B puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
-            }
+            }*/
             Piso.Effect = efecto;
             Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
             Piso.render();
             Techo.Effect = efecto;
             Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
             Techo.render();
-            /*
-            for (int i = 0; i < paredesXY; i++)
-            {
-                ParedXY[i].Transform = transformBox(ParedXY[i]);
-                ParedXY[i].Effect = efecto;
-                auxMesh = ParedXY[i].toMesh("paredXY");
-                ParedXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
-                ParedXY[i].render();
-                auxMesh.dispose();
-                if (bMode) ParedXY[i].BoundingBox.render();
-                ParedNXY[i].Transform = transformBox(ParedNXY[i]);
-                ParedNXY[i].Effect = efecto;
-                auxMesh = ParedNXY[i].toMesh("paredNXY");
-                ParedNXY[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
-                ParedNXY[i].render();
-                auxMesh.dispose();
-                if (bMode) ParedNXY[i].BoundingBox.render();
-            }
-            for (int i = 0; i < paredesYZ; i++)
-            {
-                ParedYZ[i].Transform = transformBox(ParedYZ[i]);
-                ParedYZ[i].Effect = efecto;
-                auxMesh = ParedYZ[i].toMesh("paredYZ");
-                ParedYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
-                ParedYZ[i].render();
-                auxMesh.dispose();
-                if (bMode) ParedYZ[i].BoundingBox.render();
-                ParedNYZ[i].Transform = transformBox(ParedNYZ[i]);
-                ParedNYZ[i].Effect = efecto;
-                auxMesh = ParedNYZ[i].toMesh("paredNYZ");
-                ParedNYZ[i].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
-                ParedNYZ[i].render();
-                auxMesh.dispose();
-                if (bMode) ParedNYZ[i].BoundingBox.render();
-            }
-            */
+            
             //renderGrid(posX, posZ);
             foreach(TgcBox obj in this.paredesExternas)
             {
@@ -781,45 +805,11 @@ namespace TGC.Group.Model
 
             renderGrid();
 
-            //for (int i = 0; i < paredesXY; i++)
-            //{
-            //    for (int j = 0; j < paredesYZ; j++)
-            //    {
-            //        if (skeletonsAp[i, j])
-            //        {
-            //            currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100,100,100));
-            //            currentScene[i, j].Meshes[0].Effect = efecto;
-            //            currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
-            //            currentScene[i, j].Meshes[0].render();
-            //        }
-            //        if (candleAp[i, j])
-            //        {
-            //            currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
-            //            currentScene[i, j].Meshes[0].Effect = efecto;
-            //            currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
-            //            currentScene[i, j].Meshes[0].render();
-            //        }
-            //    }
-            //}
-
-            //Piso2.render();
-            //Piso3.render();
-            //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
-            //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
-            /*Box.Transform = Matrix.Scaling(Box.Scale) *
-                            Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
-                            Matrix.Translation(Box.Position);*/
+            
             playerBBox.Transform = transformBox(playerBBox);
-            /* playerBBox.Transform = Matrix.Scaling(Box.Scale) *
-                             Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
-                             Matrix.Translation(Box.Position);-*/
+           
             if (bMode) playerBBox.BoundingBox.render();
-            //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
-            //Finalmente invocamos al render de la caja
-            //Box.render();
-            //Box.BoundingBox.render();
-
-            //currentScene.Meshes[0].render();
+            
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             foreach(Enemigo enemigo in this.enemigos) 
@@ -854,44 +844,7 @@ namespace TGC.Group.Model
                 }
             }
 
-            /*
-            for (int i = posiX; i < posfX - 1; i++)
-            {
-                for (int j = posiZ; j < posfZ; j++)
-                {
-                    if (wallMatYZ[i, j])
-                    {
-                        //System.Console.WriteLine("X:(" + i + "," + j + ")");
-                        ParedInternaYZ[i, j].Transform = transformBox(ParedInternaYZ[i, j]);
-                        ParedInternaYZ[i, j].Effect = efecto;
-                        auxMesh = ParedInternaYZ[i, j].toMesh("paredInternaXY");
-                        ParedInternaYZ[i, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
-                        ParedInternaYZ[i, j].render();
-                        auxMesh.dispose();
-                        if (bMode) ParedInternaYZ[i, j].BoundingBox.render();
-                        //DecoWallXY[i - 1, j].render();
-                    }
-                }
-            }
-            for (int i = posiZ + 1; i < posfZ; i++)
-            {
-                for (int j = posiX; j < posfX; j++)
-                {
-                    if (wallMatXY[i - 1, j])
-                    {
-                        //System.Console.WriteLine("Z:(" + (i - 1) + "," + j + ")");
-                        ParedInternaXY[i - 1, j].Transform = transformBox(ParedInternaXY[i - 1, j]);
-                        ParedInternaXY[i - 1, j].Effect = efecto;
-                        auxMesh = ParedInternaYZ[i - 1, j].toMesh("paredInternaYZ");
-                        ParedInternaXY[i - 1, j].Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
-                        ParedInternaXY[i - 1, j].render();
-                        auxMesh.dispose();
-                        if (bMode) ParedInternaXY[i - 1, j].BoundingBox.render();
-                        //DecoWallYZ[i - 1, j].render();
-                    }
-                }
-            }
-            */
+           
             for (int i = posiX; i < posfX; i++)
             {
                 for (int j = posiZ; j < posfZ; j++)
@@ -941,6 +894,12 @@ namespace TGC.Group.Model
             {
                     pared.dispose();
             }
+
+            loseSound.dispose();
+            loseText.Dispose();
+            instruccionesText.Dispose();
+            titulo.Dispose();
+
             /*
             for (int i = 1; i < paredesXY; i++)
             {
@@ -1008,13 +967,6 @@ namespace TGC.Group.Model
             return Matrix.Scaling(aBox.Scale) *
                             Matrix.RotationYawPitchRoll(aBox.Rotation.Y, aBox.Rotation.X, aBox.Rotation.Z) *
                             Matrix.Translation(aBox.Position);
-        }
-
-        private Matrix transformSpehre( TgcSphere aBox)
-        {
-            return Matrix.Scaling(aBox.Scale) *
-                             Matrix.RotationYawPitchRoll(aBox.Rotation.Y, aBox.Rotation.X, aBox.Rotation.Z) *
-                             Matrix.Translation(aBox.Position);
         }
 
         private void reset()

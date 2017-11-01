@@ -16,5 +16,10 @@ namespace TGC.Group
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new GameForm());
         }
+
+        public static void Terminate()
+        {
+            Application.Exit();
+        }
     }
 }

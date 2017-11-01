@@ -29,7 +29,7 @@ namespace TGC.Group.Camera
         private float updownRot;
 
         private bool lockCam;
-
+        public bool playing;
         private bool fixCamY;
         private Vector3 positionEye;
         private bool collision = false;
@@ -68,6 +68,7 @@ namespace TGC.Group.Camera
             : this(positionEye, moveSpeed, jumpSpeed, input)
         {
             fixCamY = fixcam;
+            playing = false;
         }
 
         private TgcD3dInput Input { get; }
@@ -142,13 +143,13 @@ namespace TGC.Group.Camera
                 moveVector += new Vector3(0, -1, 0) * JumpSpeed;
             }
 
-            if (Input.keyPressed(Key.L) || Input.keyPressed(Key.Escape))
+            if (Input.keyPressed(Key.Escape) && playing)
             {
                 LockCam = !lockCam;
             }
             var cameraRotationPos = new Matrix();
             //Solo rotar si se esta aprentando el boton izq del mouse
-            if (lockCam || Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            if (lockCam )
             {
                 leftrightRot -= -Input.XposRelative * RotationSpeed;
                 updownRot -= Input.YposRelative * RotationSpeed;

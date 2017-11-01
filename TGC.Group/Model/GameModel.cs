@@ -295,8 +295,20 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
-            TgcMesh enemigoMesh = loader.loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
-            enemigos.Add(new Enemigo(enemigoMesh, 300, this.laberinto.FindPath(new Point(0, 0), new Point(7, 12)), new Vector3(5,5,5)));
+            CrearEnemigos();
+        }
+
+        private void CrearEnemigos()
+        {
+            // Elimino enemigos anteriores si existieran.
+            foreach (var item in this.enemigos)
+            {
+                item.Dispose();
+            }
+            this.enemigos.Clear();
+            TgcMesh enemigoMesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
+            enemigos.Add(new Enemigo(enemigoMesh, 300, this.laberinto.FindPath(new Point(0, 0), new Point(7, 12)), new Vector3(5, 5, 5)));
+
         }
 
         public TgcBox CrearPared(int orientacion)
@@ -546,7 +558,8 @@ namespace TGC.Group.Model
                     Camara.SetCamera(new Vector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
                 }
             }*/
-            
+
+            List<Enemigo> aRemover = new List<Enemigo>();
             foreach (Enemigo enemigo in this.enemigos)
             {
                 try
@@ -554,9 +567,15 @@ namespace TGC.Group.Model
                     enemigo.Mover(ElapsedTime);
                 } catch (Exception e)
                 {
-                    // TODO Eliminar el enemigo ya que terminó su recorrido.
+                    aRemover.Add(enemigo);
+                
                 }
                 
+            }
+            foreach (var item in aRemover)
+            {
+                item.Dispose();
+                this.enemigos.Remove(item);
             }
             
             
@@ -1005,6 +1024,7 @@ namespace TGC.Group.Model
                 camaraFps = new TgcFpsCamera(new Vector3(4850, 200, 220), 850f, 500f, true, Input);
                 Camara = camaraFps;
                 playerBBox.Position = Camara.Position;
+                CrearEnemigos();
             }
         }
     }

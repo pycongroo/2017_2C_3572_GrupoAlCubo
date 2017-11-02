@@ -37,7 +37,10 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
         private TgcText2D titulo;
-        private TgcText2D instruccionesText;
+        private TgcText2D instruccionesText1;
+        private TgcText2D instruccionesText2;
+        private TgcText2D instruccionesText3;
+        private TgcText2D restartText;
         private TgcText2D loseText;
         private int paredesXY = 16; //potencia de 2
         private int paredesYZ = 16; //potencia de 2
@@ -149,16 +152,28 @@ namespace TGC.Group.Model
             keyCount = 0;
 
             //instrucciones al inicio del juego
-            instruccionesText = new TgcText2D();
-            instruccionesText.Text = "Utiliza el mouse y W/A/S/D para moverte. Consigue 3 llaves para abrir la puerta y salir del laberinto. Si tu luz se acaba, pierdes. Cruzarte con el esqueleto andante disminuira tu luz. Presiona SPACE para comenzar.";
-            instruccionesText.Position = new System.Drawing.Point(5,250);
-            instruccionesText.Color = Color.Red;
-            instruccionesText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 50, FontStyle.Regular));
+            instruccionesText1 = new TgcText2D();
+            instruccionesText1.Text = "Utiliza el mouse y W/A/S/D para moverte. Consigue 3 llaves para abrir la puerta y salir del laberinto.";
+            instruccionesText1.Position = new System.Drawing.Point(5,210);
+            instruccionesText1.Color = Color.Red;
+            instruccionesText1.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 35, FontStyle.Regular));
+
+            instruccionesText2 = new TgcText2D();
+            instruccionesText2.Text = "Si tu luz se acaba, pierdes. Cruzarte con el esqueleto andante disminuira tu luz. Puedes recargar tu luz recolectando Velas.";
+            instruccionesText2.Position = new System.Drawing.Point(5, 370);
+            instruccionesText2.Color = Color.Green;
+            instruccionesText2.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 35, FontStyle.Regular));
+
+            instruccionesText3 = new TgcText2D();
+            instruccionesText3.Text = "Presiona SPACE para comenzar.";
+            instruccionesText3.Position = new System.Drawing.Point(50, 520);
+            instruccionesText3.Color = Color.Blue;
+            instruccionesText3.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 35, FontStyle.Regular));
 
             titulo = new TgcText2D();
             titulo.Text = "DREADMAZE";
-            titulo.Position = new System.Drawing.Point(50, 120);
-            titulo.Color = Color.Red;
+            titulo.Position = new System.Drawing.Point(40, 80);
+            titulo.Color = Color.Yellow;
             titulo.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,80, FontStyle.Regular));
 
             loseText = new TgcText2D();
@@ -166,6 +181,12 @@ namespace TGC.Group.Model
             loseText.Position = new System.Drawing.Point(50, 300);
             loseText.Color = Color.Red;
             loseText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 80, FontStyle.Regular));
+
+            restartText = new TgcText2D();
+            restartText.Text = "Presiona R para reiniciar el juego";
+            restartText.Position = new System.Drawing.Point(50 , 500);
+            restartText.Color = Color.Orange;
+            restartText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,40,FontStyle.Bold));
 
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -479,7 +500,7 @@ namespace TGC.Group.Model
 
             if (Input.keyPressed(Key.P)) ligthIntensity = 50f;
 
-            if(ligthIntensity > 0)ligthIntensity -= 0.005f;
+            if(ligthIntensity > 0 && !beggining && !win && !godMode)ligthIntensity -= 0.005f;
 
             var count = 0;
             foreach(Enemigo enemigo in enemigos)
@@ -755,7 +776,9 @@ namespace TGC.Group.Model
 
             if (beggining)
             {
-                instruccionesText.render();
+                instruccionesText1.render();
+                instruccionesText2.render();
+                instruccionesText3.render();
                 titulo.render();
             }
 
@@ -763,6 +786,7 @@ namespace TGC.Group.Model
             if (lose)
             {
                 loseText.render();
+                restartText.render();
             }
 
             /*if (!godMode)
@@ -884,7 +908,10 @@ namespace TGC.Group.Model
             }
             loseSound.dispose();
             loseText.Dispose();
-            instruccionesText.Dispose();
+            restartText.Dispose();
+            instruccionesText1.Dispose();
+            instruccionesText3.render();
+            instruccionesText2.render();
             titulo.Dispose();
 
             /*

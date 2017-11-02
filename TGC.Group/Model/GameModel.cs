@@ -42,6 +42,7 @@ namespace TGC.Group.Model
         private TgcText2D instruccionesText3;
         private TgcText2D restartText;
         private TgcText2D loseText;
+        private TgcText2D winText;
         private int paredesXY = 16; //potencia de 2
         private int paredesYZ = 16; //potencia de 2
         private TgcScene[,] currentScene;
@@ -56,6 +57,7 @@ namespace TGC.Group.Model
         private TgcBox playerBBox { get; set; }
         private bool godMode;
         private bool bMode;
+        private bool paused;
         //private TgcBox[] ParedXY;
         //private TgcBox[] ParedNXY;
         //private TgcBox[] ParedYZ;
@@ -79,6 +81,8 @@ namespace TGC.Group.Model
         private bool beggining;
         private bool lose;
         private bool win;
+        private bool puertaTouch;
+        private TgcText2D puertaText;
         private Random random;
         //booleanos para pruebas
         private bool bTrue = true;
@@ -89,6 +93,7 @@ namespace TGC.Group.Model
         private int objCount;
         private int candleCount;
         private int keyCount;
+        private int totalKeys;
         private int visibilityLen;//distancia de renderizado
         private int posiX;
         private int posfX;
@@ -98,6 +103,7 @@ namespace TGC.Group.Model
         private bool optimizationEnabled;
         private List<Enemigo> enemigos = new List<Enemigo>();
         private TgcBox exitGate;
+        private TgcScene salida;
 
         private TgcBox ligthBox { get; set; }
 
@@ -146,10 +152,13 @@ namespace TGC.Group.Model
             var d3dDevice = D3DDevice.Instance.Device;
             godMode = false;
             bMode = false;
+            paused = false;
             ligthIntensity = 50f;
             objCount = 0;
             candleCount = 0;
             keyCount = 0;
+            totalKeys = 0;
+            puertaTouch = false;
 
             //instrucciones al inicio del juego
             instruccionesText1 = new TgcText2D();
@@ -182,11 +191,23 @@ namespace TGC.Group.Model
             loseText.Color = Color.Red;
             loseText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 80, FontStyle.Regular));
 
+            winText = new TgcText2D();
+            winText.Text = "Felicitaciones! Has logrado escapar!";
+            winText.Position = new System.Drawing.Point(50, 300);
+            winText.Color = Color.YellowGreen;
+            winText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 80, FontStyle.Regular));
+
             restartText = new TgcText2D();
             restartText.Text = "Presiona R para reiniciar el juego";
             restartText.Position = new System.Drawing.Point(50 , 500);
             restartText.Color = Color.Orange;
             restartText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,40,FontStyle.Bold));
+
+            puertaText = new TgcText2D();
+            puertaText.Text = "Necesitas 3 llaves para abrir la puerta!";
+            puertaText.Position = new System.Drawing.Point(50, 500);
+            puertaText.Color = Color.DarkCyan;
+            puertaText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 40, FontStyle.Bold));
 
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -263,9 +284,10 @@ namespace TGC.Group.Model
             var esquletoSize = new Vector3(5,5,5);
             var candleSize = new Vector3(2, 2, 2);
             var keySize = new Vector3(2, 2, 2);
-            var gateSize = new Vector3(anchoPared, altoPared, grosorPared * 2);
+            var gateSize = new Vector3(10, 7, 28);
             var textura = TgcTexture.createTexture(MediaDir + "Puerta\\Textures\\Puerta.jpg");
             var exitPos = new Vector3(anchoPared * (paredesXY-0.5f), altoPared * 0.5f, anchoPared * paredesXY);
+            exitPos = new Vector3(200,10,10);
             exitGate = new TgcBox();
             exitGate.AutoTransformEnable = true;
             exitGate.Position = exitPos;
@@ -274,6 +296,12 @@ namespace TGC.Group.Model
             exitGate.Enabled = true;
 
             var loader = new TgcSceneLoader();
+
+            salida = loader.loadSceneFromFile(MediaDir + "Puerta\\Puerta-TgcScene.xml");
+            salida.Meshes[0].AutoTransformEnable = true;
+            salida.Meshes[0].Position = exitPos;
+            salida.Meshes[0].Scale = gateSize;
+            //salida.Meshes[0].Enabled = true;
 
             for (int i = 0; i < paredesXY; i++)
             {
@@ -310,14 +338,14 @@ namespace TGC.Group.Model
 
                             if (random.Next(0, 20) < 1)
                             {
-                                loadMesh(MediaDir + "Vela\\Vela-TgcScene.xml", i, j);
+                                loadMesh(MediaDir + "LogoTGC\\LogoTGC-TgcScene.xml", i, j);
                                 currentScene[i, j].Meshes[0].AutoTransformEnable = true;
                                 currentScene[i, j].Meshes[0].move(512 * i + 256, 150, 512 * j + 256);
                                 currentScene[i, j].Meshes[0].Scale = keySize;
                                 currentScene[i, j].Meshes[0].Rotation = new Vector3(0, random.Next(0, 360), 0);
                                 keyAp[i, j] = true;
-                                keyCount += 1;
-                                velas.Add(new Vector2(i, j));
+                                totalKeys += 1;
+                                llaves.Add(new Vector2(i, j));
                             }
                             else
                             {
@@ -351,7 +379,7 @@ namespace TGC.Group.Model
             }
             this.enemigos.Clear();
             TgcMesh enemigoMesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
-            enemigos.Add(new Enemigo(enemigoMesh, 420, this.laberinto.FindPath(new Point(random.Next(0,paredesXY-1), random.Next(0, paredesYZ - 1)), new Point(random.Next(0, paredesXY - 1), random.Next(0, paredesYZ - 1))), new Vector3(5, 5, 5)));
+            enemigos.Add(new Enemigo(enemigoMesh, 420, this.laberinto.FindPath(new Point(/*random.Next(0,paredesXY-1), random.Next(0, paredesYZ - 1)*/0,0), new Point(random.Next(0, paredesXY - 1), random.Next(0, paredesYZ - 1))), new Vector3(5, 5, 5)));
 
         }
 
@@ -491,14 +519,18 @@ namespace TGC.Group.Model
                 this.reset();
             }
 
-            if ((lose && Input.keyPressed(Key.E)) || (!camaraFps.LockCam && Input.keyPressed(Key.E)))
+            /*if ((lose && Input.keyPressed(Key.E)) || (!camaraFps.LockCam && Input.keyPressed(Key.E)))
             {
                 Program.Terminate();
-            }
+            }*/
 
             if (Input.keyPressed(Key.B)) bMode = !bMode;
 
             if (Input.keyPressed(Key.P)) ligthIntensity = 50f;
+
+            if (Input.keyPressed(Key.Escape)) paused = !paused;
+
+            if ((lose || paused || win) && Input.keyPressed(Key.R) && !godMode && !beggining) reset();
 
             if(ligthIntensity > 0 && !beggining && !win && !godMode)ligthIntensity -= 0.005f;
 
@@ -575,8 +607,9 @@ namespace TGC.Group.Model
                     var j = (int)llave.Y;
                     if (TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, currentScene[i, j].Meshes[0].BoundingBox))
                     {
-                        ligthIntensity = 50f;
-                        keyCount -= 1;
+                        //ligthIntensity = 50f;
+                        keyCount += 1;
+                        totalKeys -= 1;
                         currentScene[i, j].Meshes[0].dispose();
                         keyAp[i, j] = false;
                         llaves.Remove(llave);
@@ -584,12 +617,12 @@ namespace TGC.Group.Model
                     }
                 }
 
+                puertaTouch = TgcCollisionUtils.testAABBAABB(playerBBox.BoundingBox, salida.Meshes[0].BoundingBox);
 
-                //Si hubo colision, restaurar la posicion anterior
-
-
-                //Hacer que la camara siga al personaje en su nueva posicion
-                //camaraInterna.Target = personaje.Position;
+                if (puertaTouch && keyCount >= 3)
+                {
+                    win = true;
+                }
             }
 
             //Si no se esta moviendo, activar animacion de Parado
@@ -597,27 +630,8 @@ namespace TGC.Group.Model
             {
                 //personaje.playAnimation("Parado", true);
             }
-
-            //Ajustar la posicion de la camara segun la colision con los objetos del escenario
-            //ajustarPosicionDeCamara();
-
-            //mover ligthBox
+            
             ligthBox.Position = camaraFps.Position;
-
-            //Capturar Input Mouse
-            /*if (Input.buttonUp(Core.Input.TgcD3dInput.MouseButtons.BUTTON_LEFT))
-            {
-                //Como ejemplo podemos hacer un movimiento simple de la cámara.
-                //En este caso le sumamos un valor en Y
-                Camara.SetCamera(Camara.Position + new Vector3(0, 100f, 0), Camara.LookAt);
-                //Ver ejemplos de cámara para otras operaciones posibles.
-
-                //Si superamos cierto Y volvemos a la posición original.
-                if (Camara.Position.Y > 6000f)
-                {
-                    Camara.SetCamera(new Vector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
-                }
-            }*/
 
             if (!lose && !win && !beggining)
             {
@@ -747,6 +761,10 @@ namespace TGC.Group.Model
 
             D3DDevice.Instance.Device.Clear(Microsoft.DirectX.Direct3D.ClearFlags.Target, Color.Black, 1.0f, 0);
 
+            if (puertaTouch && !win)
+            {
+                puertaText.render();
+            }
             //TgcMesh auxMesh = null;
             //var ligthDir = Camara.LookAt;
             //ligthDir.Normalize();
@@ -789,26 +807,24 @@ namespace TGC.Group.Model
                 restartText.render();
             }
 
-            /*if (!godMode)
+            if (win)
             {
-                DrawText.drawText("Con la tecla M se Reinicia el juego.", 0, 20, Color.OrangeRed);
-                DrawText.drawText(
-                    "Con esc, haciedno click izquierdo se controla la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
-                    Color.OrangeRed);
-                DrawText.drawText("Con la tecla G se activa modo dios.", 0, 40, Color.OrangeRed);
-                DrawText.drawText("Con la tecla B puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
-                DrawText.drawText("Recogiendo velas se reestablece la intensidad de la luz( o presionando la tecla P).", 0, 60, Color.OrangeRed);
-                DrawText.drawText("Intensidad de la luz: " + ligthIntensity, 0, 70, Color.OrangeRed);
-                DrawText.drawText("Hay " + objCount + " esqueletos y " + candleCount + " velas disponibles.", 0, 80, Color.OrangeRed);
-                DrawText.drawText("Hay " + keyCount + " llaves disponibles.", 0, 90, Color.OrangeRed);
+                winText.render();
+                restartText.render();
             }
-            else
+
+            if (!beggining && !win && !lose)
             {
-                DrawText.drawText("Con la tecla G se desactiva modo dios.", 0, 20, Color.OrangeRed);
-                DrawText.drawText("Utiliza la tecla ESPACIO para elevarse, y CTRL para descender.", 0, 30, Color.OrangeRed);
-                DrawText.drawText("En modo dios no hay deteccion de colisiones.", 0, 40, Color.OrangeRed);
-                DrawText.drawText("Con la tecla B puede visualizar los Bounding Box.", 0, 50, Color.OrangeRed);
-            }*/
+                DrawText.drawText("Llaves adquiridas: " + keyCount, 1200, 650, Color.Yellow);
+                DrawText.drawText("Nivel de luz: " +  Math.Truncate(ligthIntensity * 100 / 50) + "%", 50, 650, Color.Yellow);
+            }
+
+            if (godMode)
+            {
+                DrawText.drawText("Llaves disponibles: " + keyCount, 1200, 660, Color.OrangeRed);
+                DrawText.drawText("Velas disponibles: " + candleCount, 1200, 670, Color.OrangeRed);
+            }
+
             Piso.Effect = efecto;
             Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
             Piso.render();
@@ -833,7 +849,7 @@ namespace TGC.Group.Model
                 
                 enemigo.Render(efecto);
             }
-            exitGate.render();
+            
             PostRender();
         }
 
@@ -860,7 +876,14 @@ namespace TGC.Group.Model
                 }
             }
 
-           
+            Point puertaPoint = new Point((int)salida.Meshes[0].Position.X / 512, (int)salida.Meshes[0].Position.Z / 512);
+            if (puertaPoint.X >= posiX && puertaPoint.X <= posfX && puertaPoint.Y >= posiZ && puertaPoint.Y <= posfZ)
+            {
+                salida.Meshes[0].Effect = efecto;
+                salida.Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(salida.Meshes[0].RenderType);
+                salida.renderAll();
+            }
+
             for (int i = posiX; i < posfX; i++)
             {
                 for (int j = posiZ; j < posfZ; j++)
@@ -881,7 +904,7 @@ namespace TGC.Group.Model
                     }
                     if (keyAp[i, j])
                     {
-                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(200, 200, 200));
+                        currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(80, 200, 80));
                         currentScene[i, j].Meshes[0].Effect = efecto;
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         currentScene[i, j].Meshes[0].render();
@@ -901,7 +924,7 @@ namespace TGC.Group.Model
             //Dispose de la caja.
             //Box.dispose();
             playerBBox.dispose();
-
+            salida.disposeAll();
             foreach (TgcBox pared in this.paredes)
             {
                 pared.dispose();
@@ -913,34 +936,7 @@ namespace TGC.Group.Model
             instruccionesText3.render();
             instruccionesText2.render();
             titulo.Dispose();
-
-            /*
-            for (int i = 1; i < paredesXY; i++)
-            {
-                for (int j = 0; j < paredesYZ; j++)
-                {
-                    if (wallMatXY[i - 1, j])
-                    {
-                        ParedInternaXY[i - 1, j].dispose();
-                    }
-                    if (wallMatYZ[i - 1, j])
-                    {
-                        ParedInternaYZ[i - 1, j].dispose();
-                    }
-                }
-            }
-
-            for (int i = 0; i < paredesXY; i++)
-            {
-                ParedXY[i].dispose();
-                ParedNXY[i].dispose();
-            }
-            for (int i = 0; i < paredesYZ; i++)
-            {
-                ParedYZ[i].dispose();
-                ParedNYZ[i].dispose();
-            }
-            */
+            puertaText.Dispose();            
 
             for (int i = 0; i < paredesXY; i++)
             {
@@ -985,13 +981,20 @@ namespace TGC.Group.Model
 
         private void reset()
         {
-            if (!godMode)
+            camaraFps = new TgcFpsCamera(new Vector3(4850, 200, 220), 850f, 500f, true, Input);
+            Camara = camaraFps;
+            playerBBox.Position = Camara.Position;
+            beggining = true;
+            lose = false;
+            win = false;
+            paused = false;
+            keyCount = 0;
+            ligthIntensity = 40;
+            foreach(Enemigo enemigo in enemigos)
             {
-                camaraFps = new TgcFpsCamera(new Vector3(4850, 200, 220), 850f, 500f, true, Input);
-                Camara = camaraFps;
-                playerBBox.Position = Camara.Position;
-                CrearEnemigos();
+                enemigo.Dispose();
             }
+            CrearEnemigos();            
         }
     }
 }

@@ -67,7 +67,6 @@ namespace TGC.Group.Model
         private static readonly int ParedHorizontal = 1;
         private static readonly int ParedVertical = 2;
         private List<TgcBox> paredes = new List<TgcBox>();
-        private List<TgcBox> paredesExternas = new List<TgcBox>();
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
@@ -197,7 +196,6 @@ namespace TGC.Group.Model
             Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
             FabricarParedes();
             obstaculos.AddRange(this.paredes);
-            obstaculos.AddRange(paredesExternas);
             
             random = new Random();
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
@@ -392,19 +390,19 @@ namespace TGC.Group.Model
             {
                 pared = CrearPared(ParedHorizontal);
                 UbicarPared(pared, CellState.Bottom, new Point(this.laberinto.Height, x));
-                paredesExternas.Add(pared);
+                paredes.Add(pared);
                 pared = CrearPared(ParedHorizontal);
                 UbicarPared(pared, CellState.Top, new Point(0, x));
-                paredesExternas.Add(pared);
+                paredes.Add(pared);
             }
             for (var y = 0; y < this.laberinto.Height; y++)
             {
                 pared = CrearPared(ParedVertical);
                 UbicarPared(pared, CellState.Right, new Point(y, this.laberinto.Width));
-                paredesExternas.Add(pared);
+                paredes.Add(pared);
                 pared = CrearPared(ParedVertical);
                 UbicarPared(pared, CellState.Left, new Point(y, 0));
-                paredesExternas.Add(pared);
+                paredes.Add(pared);
             }
 
         }
@@ -726,6 +724,8 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
+            D3DDevice.Instance.Device.Clear(Microsoft.DirectX.Direct3D.ClearFlags.Target, Color.Black, 1.0f, 0);
+
             //TgcMesh auxMesh = null;
             //var ligthDir = Camara.LookAt;
             //ligthDir.Normalize();
@@ -793,16 +793,7 @@ namespace TGC.Group.Model
             Techo.render();
             
             //renderGrid(posX, posZ);
-            foreach(TgcBox obj in this.paredesExternas)
-            {
-                obj.Transform = transformBox(obj);
-                obj.Effect = efecto;
-                var auxMesh = obj.toMesh("pared");
-                obj.Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
-                obj.render();
-                auxMesh.dispose();
-                if (bMode) obj.BoundingBox.render();
-            }
+            
 
             renderGrid();
 
@@ -891,11 +882,6 @@ namespace TGC.Group.Model
             {
                 pared.dispose();
             }
-            foreach (TgcBox pared in this.paredesExternas)
-            {
-                    pared.dispose();
-            }
-
             loseSound.dispose();
             loseText.Dispose();
             instruccionesText.Dispose();

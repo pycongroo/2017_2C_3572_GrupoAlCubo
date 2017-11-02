@@ -1,5 +1,4 @@
 using Microsoft.DirectX;
-using Microsoft.DirectX.Direct3D;
 using Microsoft.DirectX.DirectInput;
 using System.Drawing;
 using TGC.Core.Direct3D;
@@ -246,13 +245,14 @@ namespace TGC.Group.Model
             var candleSize = new Vector3(2, 2, 2);
             var keySize = new Vector3(2, 2, 2);
             var gateSize = new Vector3(anchoPared, altoPared, grosorPared * 2);
-            var textura = TgcTexture.createTexture(MediaDir + "rocks.jpg");
-            //var exitPos = new Vector3(anchoPared * (paredesXY-0.5f), anchoPared * paredesXY, altoPared * 0.5f);
-            var exitPos = new Vector3(0, 0, 0);
-            exitGate = TgcBox.fromSize(exitPos, gateSize);
-            //exitGate = TgcBox.fromSize(gateSize, textura);
-            //exitGate.Position = exitPos;
+            var textura = TgcTexture.createTexture(MediaDir + "Puerta\\Textures\\Puerta.jpg");
+            var exitPos = new Vector3(anchoPared * (paredesXY-0.5f), altoPared * 0.5f, anchoPared * paredesXY);
+            exitGate = new TgcBox();
+            exitGate.AutoTransformEnable = true;
+            exitGate.Position = exitPos;
+            exitGate.Size = gateSize;
             exitGate.setTexture(textura);
+            exitGate.Enabled = true;
 
             var loader = new TgcSceneLoader();
 
@@ -438,9 +438,9 @@ namespace TGC.Group.Model
             {
                 Vector3 dirView = camaraFps.LookAt - camaraFps.Position;
                 float tan = dirView.Z / dirView.X;
-                System.Console.WriteLine("Tan: " + tan);
+                //System.Console.WriteLine("Tan: " + tan);
                 double anguloVista = Math.Atan2(dirView.Z, dirView.X) * (180 / Math.PI);
-                System.Console.WriteLine("Angle Tan2: " + anguloVista);
+                //System.Console.WriteLine("Angle Tan2: " + anguloVista);
                 genRanges((int)(camaraFps.Position.X / anchoPared), (int)(camaraFps.Position.Z / anchoPared), anguloVista);
             } else
             {
@@ -560,7 +560,7 @@ namespace TGC.Group.Model
                         keyCount -= 1;
                         currentScene[i, j].Meshes[0].dispose();
                         keyAp[i, j] = false;
-                        velas.Remove(llave);
+                        llaves.Remove(llave);
                         break;
                     }
                 }
@@ -722,6 +722,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Render()
         {
+            System.Console.WriteLine(exitGate.Position);
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
@@ -827,8 +828,8 @@ namespace TGC.Group.Model
             TgcMesh auxMesh = null;
             //obtener ind X min y max
 
-            System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
-            System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
+            //System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
+            //System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
             foreach (TgcBox pared in this.paredes)
             {
                 Point cuadrante = new Point((int) pared.Position.X / 512, (int) pared.Position.Z / 512);

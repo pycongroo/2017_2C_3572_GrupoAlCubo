@@ -529,7 +529,7 @@ namespace TGC.Group.Model
 
             if (Input.keyPressed(Key.P)) ligthIntensity = 50f;
 
-            if (Input.keyPressed(Key.Escape)) paused = !paused;
+            if (Input.keyPressed(Key.Escape) && !beggining && !win && !lose) paused = !paused;
 
             if ((lose || paused || win) && Input.keyPressed(Key.R) && !godMode && !beggining) reset();
 
@@ -787,7 +787,10 @@ namespace TGC.Group.Model
             efecto.SetValue("lightAttenuation", 0.29f);
             //efecto.SetValue("spotLightAngleCos", FastMath.ToRad(18));
             //efecto.SetValue("spotLightExponent", 11f);
-
+            if (paused)
+            {
+                DrawText.drawText("Con G ingresa en modo dios." + keyCount, 600, 300, Color.OrangeRed);
+            }
             //Cargar variables de shader de Material. El Material en realidad deberia ser propio de cada mesh. Pero en este ejemplo se simplifica con uno comun para todos
             if (!godMode)
             {

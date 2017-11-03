@@ -162,7 +162,7 @@ namespace TGC.Group.Model
             totalKeys = 0;
             puertaTouch = false;
             winsoundplayed = false;
-            minKeys = 5;
+            minKeys = 15;
 
             //instrucciones al inicio del juego
             instruccionesText1 = new TgcText2D();
@@ -294,8 +294,8 @@ namespace TGC.Group.Model
             var gateSize = new Vector3(10, 7, 28);
             var textura = TgcTexture.createTexture(MediaDir + "Puerta\\Textures\\Puerta.jpg");
             //exitPos = new Vector3(anchoPared * (paredesXY-0.5f), altoPared * 0.5f, anchoPared * paredesXY);
-            exitPos = new Vector3(720,10,10);
-
+            exitPos = new Vector3(random.Next(0,this.laberinto.Height) + 200 ,10, random.Next(0, this.laberinto.Height));
+            
             var loader = new TgcSceneLoader();
 
             salida = loader.loadSceneFromFile(MediaDir + "Puerta\\Puerta-TgcScene.xml");
@@ -323,7 +323,7 @@ namespace TGC.Group.Model
                     else
                     {
                         skeletonsAp[i, j] = false;
-                        if (random.Next(0,20) < 1){
+                        if (random.Next(0,20) < 2){
                             loadMesh(MediaDir + "Vela\\Vela-TgcScene.xml",i,j);
                             currentScene[i, j].Meshes[0].AutoTransformEnable = true;
                             currentScene[i, j].Meshes[0].move(512 * i + 256, 150, 512 * j + 256);
@@ -368,17 +368,18 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
-            CrearEnemigos();
+            var start = 0;
+            var end = 8;
+            while (start < end) {
+                CrearEnemigos();
+                sonidos.Add(sound);
+                start++;
+            }
         }
 
         private void CrearEnemigos()
         {
             // Elimino enemigos anteriores si existieran.
-            foreach (var item in this.enemigos)
-            {
-                item.Dispose();
-            }
-            this.enemigos.Clear();
             TgcMesh enemigoMesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
             enemigos.Add(new Enemigo(enemigoMesh, 420, this.laberinto.FindPath(new Point(random.Next(0,paredesXY-1), random.Next(0, paredesYZ - 1)), new Point(random.Next(0, paredesXY - 1), random.Next(0, paredesYZ - 1))), new Vector3(5, 5, 5)));
 
@@ -509,7 +510,7 @@ namespace TGC.Group.Model
                 moving = true;
             }
 
-            if (Input.keyPressed(Key.G))
+            if (Input.keyPressed(Key.G) && !beggining && !win && !paused && !lose)
             {
                 camaraFps.GodMode();
                 godMode = !godMode;
@@ -534,6 +535,16 @@ namespace TGC.Group.Model
             if ((lose || paused || win) && Input.keyPressed(Key.R) && !godMode && !beggining) reset();
 
             if(ligthIntensity > 0 && !beggining && !win && !godMode)ligthIntensity -= 0.005f;
+
+            if (godMode && Input.keyPressed(Key.UpArrow))
+            {
+                keyCount += 1;
+            }
+
+            if (godMode && Input.keyPressed(Key.DownArrow))
+            {
+                keyCount -= 1;
+            }
 
             var count = 0;
             foreach(Enemigo enemigo in enemigos)
@@ -634,17 +645,9 @@ namespace TGC.Group.Model
                 //personaje.playAnimation("Parado", true);
             }
 
-
-
-            if (win && winsoundplayed)
-            {
-                winSound.play(false);
-                winsoundplayed = true;
-            }
-
             ligthBox.Position = camaraFps.Position;
 
-            if (!lose && !win && !beggining)
+            if (!lose && !win && !beggining && !paused)
             {
                 List<Enemigo> aRemover = new List<Enemigo>();
                 foreach (Enemigo enemigo in this.enemigos)
@@ -665,6 +668,7 @@ namespace TGC.Group.Model
                 {
                     item.Dispose();
                     this.enemigos.Remove(item);
+                    CrearEnemigos();
                 }
             }
             
@@ -789,7 +793,7 @@ namespace TGC.Group.Model
             //efecto.SetValue("spotLightExponent", 11f);
             if (paused)
             {
-                DrawText.drawText("Con G ingresa en modo dios." + keyCount, 600, 300, Color.OrangeRed);
+                DrawText.drawText(" Hay " + enemigos.Count + " Enemigos. Con G ingresa en modo dios. La salida esta en la pos " + exitPos, 600, 300, Color.OrangeRed);
             }
             //Cargar variables de shader de Material. El Material en realidad deberia ser propio de cada mesh. Pero en este ejemplo se simplifica con uno comun para todos
             if (!godMode)
@@ -825,6 +829,11 @@ namespace TGC.Group.Model
             {
                 winText.render();
                 restartText.render();
+                if (!winsoundplayed)
+                {
+                    winSound.play();
+                    winsoundplayed = true;
+                }
             }
 
             if (!beggining && !win && !lose)
@@ -835,9 +844,9 @@ namespace TGC.Group.Model
 
             if (godMode)
             {
-                DrawText.drawText("logos disponibles: " + keyCount, 1200, 660, Color.OrangeRed);
+                DrawText.drawText("logos disponibles: " + totalKeys, 1200, 660, Color.OrangeRed);
                 DrawText.drawText("Velas disponibles: " + candleCount, 1200, 670, Color.OrangeRed);
-                DrawText.drawText("Con la tecla P resetea la intensidad de la luz.", 20 , 50, Color.OrangeRed);
+                DrawText.drawText("Con la tecla P resetea la intensidad de la luz. Con las flechas arriba y abajo aumenta o decrese su conteo de logos.", 10 , 40, Color.OrangeRed);
             }
 
             Piso.Effect = efecto;

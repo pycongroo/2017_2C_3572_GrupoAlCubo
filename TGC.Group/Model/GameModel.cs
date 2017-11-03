@@ -19,7 +19,7 @@ namespace TGC.Group.Model
 {
     /// <summary>
     ///     Ejemplo para implementar el TP.
-    ///     Inicialmente puede ser renombrado o copiado para hacer m√°s ejemplos chicos, en el caso de copiar para que se
+    ///     Inicialmente puede ser renombrado o copiado para hacer m·s ejemplos chicos, en el caso de copiar para que se
     ///     ejecute el nuevo ejemplo deben cambiar el modelo que instancia GameForm <see cref="Form.GameForm.InitGraphics()" />
     ///     line 97.
     /// </summary>
@@ -118,7 +118,7 @@ namespace TGC.Group.Model
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
-        ///     Escribir aqu√≠ todo el c√≥digo de inicializaci√≥n: cargar modelos, texturas, estructuras de optimizaci√≥n, todo
+        ///     Escribir aquÌ todo el cÛdigo de inicializaciÛn: cargar modelos, texturas, estructuras de optimizaciÛn, todo
         ///     procesamiento que podemos pre calcular para nuestro juego.
         ///     Borrar el codigo ejemplo no utilizado.
         /// </summary>
@@ -242,16 +242,16 @@ namespace TGC.Group.Model
             random = new Random();
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
-            //Construimos una caja seg√∫n los par√°metros, por defecto la misma se crea con centro en el origen y se recomienda as√≠ para facilitar las transformaciones.
+            //Construimos una caja seg˙n los par·metros, por defecto la misma se crea con centro en el origen y se recomienda asÌ para facilitar las transformaciones.
             //Box = TgcBox.fromSize(size, texture);
-            //Posici√≥n donde quiero que este la caja, es com√∫n que se utilicen estructuras internas para las transformaciones.
-            //Entonces actualizamos la posici√≥n l√≥gica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
+            //PosiciÛn donde quiero que este la caja, es com˙n que se utilicen estructuras internas para las transformaciones.
+            //Entonces actualizamos la posiciÛn lÛgica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
             //Box.Position = new Vector3(512 * posX, 100, 512 * posZ);
             
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
-            //Lo que en realidad necesitamos gr√°ficamente es una matriz de View.
-            //El framework maneja una c√°mara est√°tica, pero debe ser inicializada.
-            //Posici√≥n de la camara.
+            //Lo que en realidad necesitamos gr·ficamente es una matriz de View.
+            //El framework maneja una c·mara est·tica, pero debe ser inicializada.
+            //PosiciÛn de la camara.
             var cameraPosition = new Vector3(100, 200, 220);
             //playerBBox.Position = cameraPosition;
             playerBBox = new TgcBox();
@@ -277,7 +277,7 @@ namespace TGC.Group.Model
             sonidos.Add(sound);
 
             loseSound = new TgcStaticSound();
-            loseSound.loadSound(MediaDir + "sound\\risa de man√≠aco.wav",DirectSound.DsDevice);
+            loseSound.loadSound(MediaDir + "sound\\risa de manÌaco.wav",DirectSound.DsDevice);
 
             DirectSound.ListenerTracking = playerBBox;
 
@@ -364,7 +364,7 @@ namespace TGC.Group.Model
             //Configuro donde esta la posicion de la camara y hacia donde mira.
             //Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
-            //Luego en nuestro juego tendremos que crear una c√°mara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+            //Luego en nuestro juego tendremos que crear una c·mara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
             CrearEnemigos();
@@ -458,7 +458,7 @@ namespace TGC.Group.Model
 
         /// <summary>
         ///     Se llama en cada frame.
-        ///     Se debe escribir toda la l√≥gica de computo del modelo, as√≠ como tambi√©n verificar entradas del usuario y reacciones
+        ///     Se debe escribir toda la lÛgica de computo del modelo, asÌ como tambiÈn verificar entradas del usuario y reacciones
         ///     ante ellas.
         /// </summary>
         public override void Update()
@@ -750,13 +750,13 @@ namespace TGC.Group.Model
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
-        ///     Escribir aqu√≠ todo el c√≥digo referido al renderizado.
+        ///     Escribir aquÌ todo el cÛdigo referido al renderizado.
         ///     Borrar todo lo que no haga falta.
         /// </summary>
         public override void Render()
         {
             System.Console.WriteLine(exitGate.Position);
-            //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones seg√∫n nuestra conveniencia.
+            //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones seg˙n nuestra conveniencia.
             PreRender();
 
             D3DDevice.Instance.Device.Clear(Microsoft.DirectX.Direct3D.ClearFlags.Target, Color.Black, 1.0f, 0);
@@ -914,9 +914,9 @@ namespace TGC.Group.Model
         }
 
         /// <summary>
-        ///     Se llama cuando termina la ejecuci√≥n del ejemplo.
+        ///     Se llama cuando termina la ejecuciÛn del ejemplo.
         ///     Hacer Dispose() de todos los objetos creados.
-        ///     Es muy importante liberar los recursos, sobretodo los gr√°ficos ya que quedan bloqueados en el device de video.
+        ///     Es muy importante liberar los recursos, sobretodo los gr·ficos ya que quedan bloqueados en el device de video.
         /// </summary>
         public override void Dispose()
         {
@@ -993,7 +993,6 @@ namespace TGC.Group.Model
             foreach(Enemigo enemigo in enemigos)
             {
                 enemigo.Dispose();
-                enemigos.Remove(enemigo);
             }
             CrearEnemigos();            
         }

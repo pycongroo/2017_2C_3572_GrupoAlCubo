@@ -369,7 +369,7 @@ namespace TGC.Group.Model
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
             var start = 0;
-            var end = 8;
+            var end = 9;
             while (start < end) {
                 CrearEnemigos();
                 sonidos.Add(sound);
@@ -534,7 +534,7 @@ namespace TGC.Group.Model
 
             if ((lose || paused || win) && Input.keyPressed(Key.R) && !godMode && !beggining) reset();
 
-            if(ligthIntensity > 0 && !beggining && !win && !godMode)ligthIntensity -= 0.005f;
+            if(ligthIntensity > 0 && !beggining && !win && !godMode && !paused)ligthIntensity -= 0.005f;
 
             if (godMode && Input.keyPressed(Key.UpArrow))
             {

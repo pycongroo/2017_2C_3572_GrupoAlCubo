@@ -971,17 +971,11 @@ namespace TGC.Group.Model
                    if(keyAp[i, j]) currentScene[i, j].Meshes[0].dispose();
                 }
             }
-            List<Enemigo> aRemover = new List<Enemigo>();
             foreach (Enemigo enemigo in enemigos)
             {
                 enemigo.Dispose();
-                aRemover.Add(enemigo);
             }
-            foreach (var item in aRemover)
-            {
-                item.Dispose();
-                this.enemigos.Remove(item);
-            }
+            this.enemigos.Clear();
 
         }
 

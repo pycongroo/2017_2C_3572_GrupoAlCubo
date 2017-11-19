@@ -381,7 +381,7 @@ namespace TGC.Group.Model
         {
             // Elimino enemigos anteriores si existieran.
             TgcMesh enemigoMesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
-            enemigos.Add(new Enemigo(enemigoMesh, 420, this.laberinto.FindPath(new Point(random.Next(0,paredesXY-1), random.Next(0, paredesYZ - 1)), new Point(random.Next(0, paredesXY - 1), random.Next(0, paredesYZ - 1))), new Vector3(5, 5, 5)));
+            enemigos.Add(new Enemigo(enemigoMesh, 420, this.laberinto, new Vector3(5, 5, 5)));
 
         }
 

@@ -30,6 +30,7 @@ namespace TGC.Group.Model
         public TgcMesh representacion;
         private Direccion sentidoAnterior;
         private static readonly float[,] rotacionCardinal;
+        private static Random random = new Random();
 
         static Enemigo()
         {
@@ -52,12 +53,13 @@ namespace TGC.Group.Model
             rotacionCardinal[(int)Direccion.Oeste, (int)Direccion.Norte] = FastMath.PI_HALF;
         }
 
-        public Enemigo(TgcMesh mesh, float velocidad, List<Point> recorrido, Vector3 scale)
+        public Enemigo(TgcMesh mesh, float velocidad, Maze laberinto, Vector3 scale)
         {
             this.representacion = mesh;
             this.representacion.Scale = scale;
             this.velocidad = velocidad;
-            this.recorrido = recorrido;
+            this.recorrido = laberinto.FindPath(new Point(random.Next(0, laberinto.Width - 1), random.Next(0, laberinto.Height - 1)), 
+                new Point(random.Next(0, laberinto.Width - 1), random.Next(0, laberinto.Height - 1)));
             this.sentidoAnterior = Direccion.Sur;
             Representar();
         }

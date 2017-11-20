@@ -39,6 +39,8 @@ namespace TGC.Group.Model
         }
 
         private float time;
+        private float distance2nearEnemy;
+
         private Microsoft.DirectX.Direct3D.Surface depthStencil; // Depth-stencil buffer
         private Microsoft.DirectX.Direct3D.Surface depthStencilOld;
         private Microsoft.DirectX.Direct3D.Effect postEffect;
@@ -136,7 +138,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-
+            distance2nearEnemy = 9999999999f;
             time = 0f;
             //Se crean 2 triangulos (o Quad) con las dimensiones de la pantalla con sus posiciones ya transformadas
             // x = -1 es el extremo izquiedo de la pantalla, x = 1 es el extremo derecho
@@ -594,7 +596,7 @@ namespace TGC.Group.Model
             {
                 keyCount -= 1;
             }
-
+            float auxDist = 9999999999f;
             var count = 0;
             foreach(Enemigo enemigo in enemigos)
             {
@@ -608,8 +610,15 @@ namespace TGC.Group.Model
                 if (!result) enemColl = true;
                 sonidos[count].Position = enemigo.representacion.Position;
                 count++;
+                float tDist = (enemigo.representacion.Position - playerBBox.Position).Length();
+                if (tDist < auxDist)
+                {
+                    auxDist = tDist;
+                }
             }
-
+            distance2nearEnemy = auxDist;
+            //Console.WriteLine("Distancia enemigo mas cercano");
+            //Console.WriteLine(distance2nearEnemy);
             if (random.Next(0, 10000) < 1) {
                 sonidos[count].Position = new Vector3(random.Next(0,8000), 200, random.Next(0, 8000));
                 sonidos[count].play(false);
@@ -953,9 +962,19 @@ namespace TGC.Group.Model
 
             postEffect.Technique = "CustomTechnique";
             time += elapsedTime;
+            float intensidad;
+            if (distance2nearEnemy < 2000)
+            {
+                intensidad = 40f*(1f - distance2nearEnemy/2000);
+            } else
+            {
+                intensidad = 0;
+                //intensidad = 40f * (1f - distance2nearEnemy / 2000);
+            }
             //Cargamos parametros en el shader de Post-Procesado
             postEffect.SetValue("render_target2D", renderTarget2D);
             postEffect.SetValue("time", time);
+            postEffect.SetValue("intensidad", intensidad);
 
             //Limiamos la pantalla y ejecutamos el render del shader
             d3dDevice.Clear(Microsoft.DirectX.Direct3D.ClearFlags.Target | Microsoft.DirectX.Direct3D.ClearFlags.ZBuffer, Color.Black, 1.0f, 0);

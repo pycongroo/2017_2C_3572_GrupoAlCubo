@@ -195,11 +195,13 @@ technique BlurTechnique
 
 //float blur_intensity;
 float time;
+float intensidad;
 //Pixel Shader de Blur
 float4 ps_custom(PS_INPUT_DEFAULT Input) : COLOR0
 {
 	//Obtener color de textura
-	float2 coord = float2(Input.Texcoord.x + sin((Input.Texcoord.y+time/2)*40)/100, Input.Texcoord.y);
+	float2 coord;
+	coord = float2(Input.Texcoord.x + sin((Input.Texcoord.y + time/6000) * intensidad) / 100, Input.Texcoord.y);
 	float4 color = tex2D(RenderTarget, coord);
 	//float4 newColor = 
 	//return float4(color.rg, 1, 0);

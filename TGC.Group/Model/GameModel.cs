@@ -180,7 +180,7 @@ namespace TGC.Group.Model
             laberinto = new Maze(paredesXY, paredesYZ);
             obstaculos = new List<TgcBox>();
             collide = false;
-            visibilityLen = 3;
+            visibilityLen = 4;
             rangoDiagAngle = 10;
             optimizationEnabled = true;
             currentScene = new TgcScene[paredesXY, paredesYZ];
@@ -509,6 +509,15 @@ namespace TGC.Group.Model
 
         }
 
+        public bool estaEnElMapa()
+        {
+            bool estaEnRangoX = camaraFps.Position.X > 0 && camaraFps.Position.X < paredesXY * anchoPared;
+            bool estaEnRangoY = camaraFps.Position.Y > 0 && camaraFps.Position.Y < paredesYZ * anchoPared;
+            //Console.WriteLine(estaEnRangoX);
+            //Console.WriteLine(estaEnRangoY);
+            return estaEnRangoX && estaEnRangoY;
+        }
+
         /// <summary>
         ///     Se llama en cada frame.
         ///     Se debe escribir toda la lógica de computo del modelo, así como también verificar entradas del usuario y reacciones
@@ -534,7 +543,7 @@ namespace TGC.Group.Model
                 loseSound.play();
                 //lose = false;
             }
-            if (optimizationEnabled)
+            if (optimizationEnabled && estaEnElMapa())
             {
                 Vector3 dirView = camaraFps.LookAt - camaraFps.Position;
                 float tan = dirView.Z / dirView.X;

@@ -187,3 +187,30 @@ technique BlurTechnique
 		PixelShader = compile ps_2_0 ps_blur();
 	}
 }
+
+
+/**************************************************************************************/
+/* CUSTOM */
+/**************************************************************************************/
+
+//float blur_intensity;
+float time;
+//Pixel Shader de Blur
+float4 ps_custom(PS_INPUT_DEFAULT Input) : COLOR0
+{
+	//Obtener color de textura
+	float2 coord = float2(Input.Texcoord.x + sin(Input.Texcoord.x+ Input.Texcoord.y+time*10)/10, Input.Texcoord.y);
+	float4 color = tex2D(RenderTarget, coord);
+	//float4 newColor = 
+	//return float4(color.rg, 1, 0);
+	return color;
+}
+
+technique CustomTechnique
+{
+	pass Pass_0
+	{
+		VertexShader = compile vs_2_0 vs_default();
+		PixelShader = compile ps_2_0 ps_custom();
+	}
+}

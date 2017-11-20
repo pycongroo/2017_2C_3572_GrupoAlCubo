@@ -31,6 +31,8 @@ namespace TGC.Group.Model
         private Direccion sentidoAnterior;
         private static readonly float[,] rotacionCardinal;
         private static Random random = new Random();
+        private const float RADIO_PERSECUCION = 3.0f;
+        private Maze laberinto;
 
         static Enemigo()
         {
@@ -58,6 +60,7 @@ namespace TGC.Group.Model
             this.representacion = mesh;
             this.representacion.Scale = scale;
             this.velocidad = velocidad;
+            this.laberinto = laberinto;
             this.recorrido = laberinto.FindPath(new Point(random.Next(0, laberinto.Width - 1), random.Next(0, laberinto.Height - 1)), 
                 new Point(random.Next(0, laberinto.Width - 1), random.Next(0, laberinto.Height - 1)));
             this.sentidoAnterior = Direccion.Sur;
@@ -89,9 +92,21 @@ namespace TGC.Group.Model
             }
         }
 
-        public void Mover(float tiempo)
+        public void Mover(float tiempo, Vector3 posicionCamara)
         {
+            Point posicionPersonaje = CoordenadaEnLaberinto(posicionCamara.X, posicionCamara.Z);
             Point posicionActual = PosicionActual();
+            if (Distancia(posicionActual, posicionPersonaje) < RADIO_PERSECUCION)
+            {
+                // Aumento el tiempo para afectar la velocidad.
+                tiempo *= 1.5f;
+                if (!EstaEnCaminoAlPersonaje(posicionActual, posicionPersonaje))
+                {
+                    // Recalcular la ruta para iniciar persecucion.
+                    this.recorrido = laberinto.FindPath(posicionActual, posicionPersonaje);
+
+                }
+            }
             Direccion hacia = Sentido(posicionActual, Proximo(posicionActual));
             float posicionEnBloque = 0;
              // Si paso la mitad del sector que recorre.
@@ -136,6 +151,34 @@ namespace TGC.Group.Model
             
         }
 
+        private bool EstaEnCaminoAlPersonaje(Point posicionActual, Point posicionPersonaje)
+        {
+            bool encaminado = false;
+            if (this.recorrido.Contains(posicionPersonaje))
+            {
+                foreach (Point puntoEnElRecorrido in this.recorrido)
+                {
+                    if (puntoEnElRecorrido.Equals(posicionActual))
+                    {
+                        // Si el primer punto que encuentra en la lista es la posición actual todavía no llegue.
+                        return true;
+                    }
+                    if (puntoEnElRecorrido.Equals(posicionPersonaje))
+                    {
+                        // Quiere decir que ya me pase.
+                        return false;
+                    }
+                }
+            }
+            return encaminado;
+        }
+
+        private float Distancia(Point posicionActual, Point posicionPersonaje)
+        {
+            return FastMath.Sqrt(FastMath.Pow2(posicionActual.X - posicionPersonaje.X) 
+                + FastMath.Pow2(posicionActual.Y - posicionPersonaje.Y));
+        }
+
         private Point Proximo(Point posicionActual)
         {
             Point proximo = new Point();
@@ -158,7 +201,12 @@ namespace TGC.Group.Model
 
         private Point PosicionActual()
         {
-            return new Point( (int) representacion.Position.X / LONGITUD_SECTOR, (int) representacion.Position.Z / LONGITUD_SECTOR);
+            return CoordenadaEnLaberinto(representacion.Position.X, representacion.Position.Z);
+        }
+
+        private Point CoordenadaEnLaberinto(float x, float y)
+        {
+            return new Point((int) x / LONGITUD_SECTOR, (int) y / LONGITUD_SECTOR);
         }
 
         public void Posicionar(Point donde)

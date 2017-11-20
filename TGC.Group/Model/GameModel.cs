@@ -654,7 +654,7 @@ namespace TGC.Group.Model
                 {
                     try
                     {
-                        enemigo.Mover(ElapsedTime);
+                        enemigo.Mover(ElapsedTime, camaraFps.Position);
                     }
                     catch (Exception e)
                     {

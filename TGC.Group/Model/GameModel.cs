@@ -51,6 +51,8 @@ namespace TGC.Group.Model
 
         private Drawer2D drawer2D;
         private CustomSprite logoSprite;
+        private CustomSprite velaSprite;
+        private CustomSprite intensidadSprite;
         private TgcText2D titulo;
         private TgcText2D instruccionesText1;
         private TgcText2D instruccionesText2;
@@ -271,10 +273,22 @@ namespace TGC.Group.Model
 
             drawer2D = new Drawer2D();
 
+            var spriteScale = new Vector2((float)D3DDevice.Instance.Width/15000,(float)D3DDevice.Instance.Height/7800);
+
             logoSprite = new CustomSprite();
             logoSprite.Bitmap = new CustomBitmap(MediaDir + "LogoTGC\\LogoTGC.png", D3DDevice.Instance.Device);
-            logoSprite.Scaling = new Vector2(0.15f,0.15f);
-            logoSprite.Position = new Vector2((D3DDevice.Instance.Width/9)*8, (D3DDevice.Instance.Height/9)*8);
+            logoSprite.Scaling = spriteScale;
+            logoSprite.Position = new Vector2((D3DDevice.Instance.Width/9)*8.2f, (D3DDevice.Instance.Height/9)*8);
+
+            velaSprite = new CustomSprite();
+            velaSprite.Bitmap = new CustomBitmap(MediaDir + "Vela\\velasprite.png", D3DDevice.Instance.Device);
+            velaSprite.Scaling = spriteScale;
+            velaSprite.Position = new Vector2((D3DDevice.Instance.Width / 25), (D3DDevice.Instance.Height / 9) * 8);
+
+            intensidadSprite = new CustomSprite();
+            intensidadSprite.Bitmap = new CustomBitmap(MediaDir + "cartelera2.jpg", D3DDevice.Instance.Device);
+            intensidadSprite.Scaling = new Vector2((float)D3DDevice.Instance.Width/2000,(float)D3DDevice.Instance.Height/17000);
+            intensidadSprite.Position = new Vector2((D3DDevice.Instance.Width / 12), ((float)D3DDevice.Instance.Height / 9) * 8.1f);
 
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -733,6 +747,8 @@ namespace TGC.Group.Model
                 //personaje.playAnimation("Parado", true);
             }
 
+            intensidadSprite.Scaling = new Vector2(ligthIntensity*((float)D3DDevice.Instance.Width / 2000)/50, intensidadSprite.Scaling.Y);
+
             ligthBox.Position = camaraFps.Position;
             var normalLook = Vector3.Normalize(new Vector3(Camara.LookAt.X - Camara.Position.X,Camara.LookAt.Y - Camara.Position.Y, Camara.LookAt.Z - Camara.Position.Z));
             normalLook.X = normalLook.X != 0 ? normalLook.X : 0;
@@ -916,9 +932,6 @@ namespace TGC.Group.Model
 
             //renderGrid(posX, posZ);
 
-            drawer2D.BeginDrawSprite();
-            drawer2D.DrawSprite(logoSprite);
-            drawer2D.EndDrawSprite();
             renderGrid();
 
             
@@ -1059,7 +1072,7 @@ namespace TGC.Group.Model
             if (!beggining && !win && !lose)
             {
                 DrawText.drawText(": " + keyCount, (D3DDevice.Instance.Width/20)*19,(D3DDevice.Instance.Height/13) *12, Color.Yellow);
-                DrawText.drawText("Nivel de luz: " + Math.Truncate(ligthIntensity * 100 / 50) + "%", (D3DDevice.Instance.Width/25), (D3DDevice.Instance.Height/13)*12, Color.Yellow);
+                //DrawText.drawText(": " + Math.Truncate(ligthIntensity * 100 / 50) + "%", (D3DDevice.Instance.Width/12), (D3DDevice.Instance.Height/12)*11, Color.Yellow);
             }
 
             if (godMode)
@@ -1070,6 +1083,12 @@ namespace TGC.Group.Model
             }
 
             RenderAxis();
+
+            drawer2D.BeginDrawSprite();
+            drawer2D.DrawSprite(velaSprite);
+            drawer2D.DrawSprite(intensidadSprite);
+            drawer2D.DrawSprite(logoSprite);
+            drawer2D.EndDrawSprite();
             d3dDevice.EndScene();
             d3dDevice.Present();
         }
@@ -1152,11 +1171,13 @@ namespace TGC.Group.Model
             loseSound.dispose();
             loseText.Dispose();
             logoSprite.Dispose();
+            velaSprite.Dispose();
             winSound.dispose();
             restartText.Dispose();
             instruccionesText1.Dispose();
             instruccionesText3.render();
             instruccionesText2.render();
+            intensidadSprite.Dispose();
             titulo.Dispose();
             puertaText.Dispose();
             linternaObj.disposeAll();

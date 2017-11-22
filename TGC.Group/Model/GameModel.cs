@@ -353,10 +353,6 @@ namespace TGC.Group.Model
             sonidos = new List<Tgc3dSound>();
             Tgc3dSound sound;
 
-            sound = new Tgc3dSound(MediaDir + "sound\\viento helado.wav", Vector3.Empty, DirectSound.DsDevice);
-            sound.MinDistance = 220f;
-            sound.play(true);
-            sonidos.Add(sound);
             sound = new Tgc3dSound(MediaDir + "sound\\risa infantil.wav", Vector3.Empty, DirectSound.DsDevice);
             sound.MinDistance = 2500f;
             sonidos.Add(sound);
@@ -458,7 +454,7 @@ namespace TGC.Group.Model
             var end = 9;
             while (start < end) {
                 CrearEnemigos();
-                sonidos.Add(sound);
+                //sonidos.Add(sound);
                 start++;
             }
         }
@@ -468,7 +464,11 @@ namespace TGC.Group.Model
             // Elimino enemigos anteriores si existieran.
             TgcMesh enemigoMesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "EsqueletoHumano2\\Esqueleto2-TgcScene.xml").Meshes[0];
             enemigos.Add(new Enemigo(enemigoMesh, 420, this.laberinto, new Vector3(5, 5, 5)));
-
+            Tgc3dSound sound;
+            sound = new Tgc3dSound(MediaDir + "sound\\viento helado.wav", enemigos[enemigos.Count - 1].representacion.Position, DirectSound.DsDevice);
+            sound.MinDistance = 300f;
+            sound.play(true);
+            sonidos.Add(sound);
         }
 
         public TgcBox CrearPared(int orientacion)
@@ -641,7 +641,7 @@ namespace TGC.Group.Model
                 keyCount -= 1;
             }
             float auxDist = 9999999999f;
-            var count = 0;
+            var count = 1;
             foreach(Enemigo enemigo in enemigos)
             {
                 bool result = false;
@@ -664,8 +664,8 @@ namespace TGC.Group.Model
             //Console.WriteLine("Distancia enemigo mas cercano");
             //Console.WriteLine(distance2nearEnemy);
             if (random.Next(0, 10000) < 1) {
-                sonidos[count].Position = new Vector3(random.Next(0,8000), 200, random.Next(0, 8000));
-                sonidos[count].play(false);
+                sonidos[0].Position = new Vector3(random.Next(0,8000), 200, random.Next(0, 8000));
+                sonidos[0].play(false);
             }
 
             if (ligthIntensity <= 0) lose = true;
@@ -774,6 +774,7 @@ namespace TGC.Group.Model
                     catch (Exception e)
                     {
                         aRemover.Add(enemigo);
+                        sonidos.RemoveRange(enemigos.IndexOf(enemigo) +1,1);
 
                     }
 
@@ -786,7 +787,7 @@ namespace TGC.Group.Model
                     CrearEnemigos();
                 }
             }
-            
+            //UpdateView();
             
         }
 

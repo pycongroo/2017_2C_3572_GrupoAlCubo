@@ -60,6 +60,12 @@ namespace TGC.Group.Model
         private TgcText2D restartText;
         private TgcText2D loseText;
         private TgcText2D winText;
+        private TgcText2D menuText;
+        private CustomSprite menuSprite;
+        private CustomSprite buttonUnselected;
+        private CustomSprite buttonSelected;
+
+        private int menuState;
         private int paredesXY = 32; //potencia de 2
         private int paredesYZ = 32; //potencia de 2
         private TgcScene[,] currentScene;
@@ -290,6 +296,21 @@ namespace TGC.Group.Model
             intensidadSprite.Scaling = new Vector2((float)D3DDevice.Instance.Width/2000,(float)D3DDevice.Instance.Height/17000);
             intensidadSprite.Position = new Vector2((D3DDevice.Instance.Width / 12), ((float)D3DDevice.Instance.Height / 9) * 8.1f);
 
+            menuSprite = new CustomSprite();
+            menuSprite.Bitmap = new CustomBitmap(MediaDir + "piso2.jpg", D3DDevice.Instance.Device);
+            menuSprite.Scaling = new Vector2(((float)D3DDevice.Instance.Width /5000)*8,((float)D3DDevice.Instance.Height/5000)*8);
+            menuSprite.Position = new Vector2(D3DDevice.Instance.Width/11,D3DDevice.Instance.Height/11);
+
+            buttonUnselected = new CustomSprite();
+            buttonUnselected.Bitmap = new CustomBitmap(MediaDir + "cajaMadera4.jpg", D3DDevice.Instance.Device);
+            buttonUnselected.Scaling = new Vector2((D3DDevice.Instance.Width),(D3DDevice.Instance.Height));
+            buttonUnselected.Position = Vector2.Empty;
+
+            buttonSelected = new CustomSprite();
+            buttonSelected.Bitmap = new CustomBitmap(MediaDir + "cajaMadera4.jpg", D3DDevice.Instance.Device);
+            buttonSelected.Scaling = new Vector2(((float)D3DDevice.Instance.Width/1000),(float)D3DDevice.Instance.Height/3500);
+            buttonSelected.Position = new Vector2((D3DDevice.Instance.Width/16)*6,((float)D3DDevice.Instance.Height/4)*1.5f);
+
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
@@ -345,6 +366,7 @@ namespace TGC.Group.Model
             lose = false;
             beggining = true;
             win = false;
+            menuState = 0;
 
             flechaUi = new TgcArrow();
 
@@ -1051,7 +1073,7 @@ namespace TGC.Group.Model
                 instruccionesText1.render();
                 instruccionesText2.render();
                 instruccionesText3.render();
-                titulo.render();
+                //titulo.render();
             }
 
 
@@ -1091,9 +1113,20 @@ namespace TGC.Group.Model
             drawer2D.DrawSprite(velaSprite);
             drawer2D.DrawSprite(intensidadSprite);
             drawer2D.DrawSprite(logoSprite);
+            if (beggining)
+            {
+                renderMenu();
+            }
             drawer2D.EndDrawSprite();
             d3dDevice.EndScene();
             d3dDevice.Present();
+        }
+
+        void renderMenu()
+        {
+            drawer2D.DrawSprite(menuSprite);
+            titulo.render();
+            drawer2D.DrawSprite(buttonSelected);
         }
 
         public void renderGrid()

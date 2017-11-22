@@ -117,6 +117,8 @@ namespace TGC.Group.Model
         private TgcScene salida;
         private Vector3 exitPos;
         private int minKeys;
+        private TgcScene linternaObj;
+        private TgcArrow flechaUi;
 
         private TgcBox ligthBox { get; set; }
 
@@ -320,6 +322,10 @@ namespace TGC.Group.Model
             beggining = true;
             win = false;
 
+            flechaUi = new TgcArrow();
+
+            flechaUi.PStart = cameraPosition;
+
             sonidos = new List<Tgc3dSound>();
             Tgc3dSound sound;
 
@@ -354,6 +360,11 @@ namespace TGC.Group.Model
             salida.Meshes[0].Position = exitPos;
             salida.Meshes[0].Scale = gateSize;
             //salida.Meshes[0].Enabled = true;
+
+            linternaObj = loader.loadSceneFromFile(MediaDir + "Vela\\Vela-TgcScene.xml");
+            linternaObj.Meshes[0].AlphaBlendEnable = true;
+            linternaObj.Meshes[0].Position = new Vector3(85, 188.5f, 208);
+            linternaObj.Meshes[0].Scale = new Vector3(0.05f,0.05f,0.05f);
 
             for (int i = 0; i < paredesXY; i++)
             {
@@ -713,6 +724,15 @@ namespace TGC.Group.Model
             }
 
             ligthBox.Position = camaraFps.Position;
+            var normalLook = Vector3.Normalize(new Vector3(Camara.LookAt.X - Camara.Position.X,Camara.LookAt.Y - Camara.Position.Y, Camara.LookAt.Z - Camara.Position.Z));
+            normalLook.X = normalLook.X != 0 ? normalLook.X : 0;
+            normalLook.X = normalLook.X > 0 ? Camara.LookAt.X + 2 : Camara.LookAt.X - 2;
+            normalLook.Y = normalLook.Y != 0 ? normalLook.Y : 0;
+            normalLook.Y = normalLook.Y > 0 ? Camara.LookAt.Y + 0.7f : Camara.LookAt.Y - 0.7f;
+            normalLook.Z = normalLook.Z != 0 ? normalLook.Z : 0;
+            normalLook.Z = normalLook.Z > 0 ? Camara.LookAt.Z + 2 : Camara.LookAt.Z - 2;
+
+            linternaObj.Meshes[0].Position = normalLook;
 
             if (!lose && !win && !beggining && !paused)
             {
@@ -875,7 +895,8 @@ namespace TGC.Group.Model
             efecto.SetValue("materialSpecularColor", Color.White.ToArgb());
             efecto.SetValue("materialSpecularExp", 10f);
 
-            
+            linternaObj.renderAll();
+
             Piso.Effect = efecto;
             Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
             Piso.render();
@@ -1124,7 +1145,8 @@ namespace TGC.Group.Model
             instruccionesText3.render();
             instruccionesText2.render();
             titulo.Dispose();
-            puertaText.Dispose();            
+            puertaText.Dispose();
+            linternaObj.disposeAll();
 
             for (int i = 0; i < paredesXY; i++)
             {

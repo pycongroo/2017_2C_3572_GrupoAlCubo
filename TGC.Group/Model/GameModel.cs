@@ -746,8 +746,10 @@ namespace TGC.Group.Model
             {
                 //personaje.playAnimation("Parado", true);
             }
-
-            intensidadSprite.Scaling = new Vector2(ligthIntensity*((float)D3DDevice.Instance.Width / 2000)/50, intensidadSprite.Scaling.Y);
+            var spriteXScale = 0f;
+            if (ligthIntensity > 0) spriteXScale = ligthIntensity * ((float)D3DDevice.Instance.Width / 2000) / 50;
+            else spriteXScale = 0f;
+            intensidadSprite.Scaling = new Vector2(spriteXScale, intensidadSprite.Scaling.Y);
 
             ligthBox.Position = camaraFps.Position;
             var normalLook = Vector3.Normalize(new Vector3(Camara.LookAt.X - Camara.Position.X,Camara.LookAt.Y - Camara.Position.Y, Camara.LookAt.Z - Camara.Position.Z));
@@ -1181,6 +1183,7 @@ namespace TGC.Group.Model
             titulo.Dispose();
             puertaText.Dispose();
             linternaObj.disposeAll();
+            paredes.Clear();
 
             for (int i = 0; i < paredesXY; i++)
             {

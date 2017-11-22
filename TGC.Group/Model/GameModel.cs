@@ -15,6 +15,7 @@ using TGC.Core.Fog;
 using TGC.Core.Shaders;
 using TGC.Core.Sound;
 using TGC.Core.Text;
+using TGC.Group.Libs.Core;
 
 namespace TGC.Group.Model
 {
@@ -48,6 +49,8 @@ namespace TGC.Group.Model
         private Microsoft.DirectX.Direct3D.Texture renderTarget2D;
         private Microsoft.DirectX.Direct3D.VertexBuffer screenQuadVB;
 
+        private Drawer2D drawer2D;
+        private CustomSprite logoSprite;
         private TgcText2D titulo;
         private TgcText2D instruccionesText1;
         private TgcText2D instruccionesText2;
@@ -265,6 +268,13 @@ namespace TGC.Group.Model
             puertaText.Position = new System.Drawing.Point(50, 500);
             puertaText.Color = Color.DarkCyan;
             puertaText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 40, FontStyle.Bold));
+
+            drawer2D = new Drawer2D();
+
+            logoSprite = new CustomSprite();
+            logoSprite.Bitmap = new CustomBitmap(MediaDir + "LogoTGC\\LogoTGC.png", D3DDevice.Instance.Device);
+            logoSprite.Scaling = new Vector2(0.15f,0.15f);
+            logoSprite.Position = new Vector2((D3DDevice.Instance.Width/9)*8, (D3DDevice.Instance.Height/9)*8);
 
             //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -903,10 +913,12 @@ namespace TGC.Group.Model
             Techo.Effect = efecto;
             Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
             Techo.render();
-            
-            //renderGrid(posX, posZ);
-            
 
+            //renderGrid(posX, posZ);
+
+            drawer2D.BeginDrawSprite();
+            drawer2D.DrawSprite(logoSprite);
+            drawer2D.EndDrawSprite();
             renderGrid();
 
             
@@ -1046,8 +1058,8 @@ namespace TGC.Group.Model
 
             if (!beggining && !win && !lose)
             {
-                DrawText.drawText("Logos adquiridos: " + keyCount, 1200, 650, Color.Yellow);
-                DrawText.drawText("Nivel de luz: " + Math.Truncate(ligthIntensity * 100 / 50) + "%", 50, 650, Color.Yellow);
+                DrawText.drawText(": " + keyCount, (D3DDevice.Instance.Width/20)*19,(D3DDevice.Instance.Height/13) *12, Color.Yellow);
+                DrawText.drawText("Nivel de luz: " + Math.Truncate(ligthIntensity * 100 / 50) + "%", (D3DDevice.Instance.Width/25), (D3DDevice.Instance.Height/13)*12, Color.Yellow);
             }
 
             if (godMode)
@@ -1139,6 +1151,7 @@ namespace TGC.Group.Model
             }
             loseSound.dispose();
             loseText.Dispose();
+            logoSprite.Dispose();
             winSound.dispose();
             restartText.Dispose();
             instruccionesText1.Dispose();

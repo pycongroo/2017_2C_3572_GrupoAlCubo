@@ -94,6 +94,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Game.settings</DependentUpon>
     </Compile>
+    <Compile Include="Libs\Core\AnimatedSprite.cs" />
+    <Compile Include="Libs\Core\CustomBitmap.cs" />
+    <Compile Include="Libs\Core\CustomSprite.cs" />
+    <Compile Include="Libs\Core\Drawer2D.cs" />
     <Compile Include="Libs\MyTgcInput.cs" />
     <Compile Include="Libs\MyTgcExample.cs" />
     <Compile Include="Model\Enemigo.cs" />

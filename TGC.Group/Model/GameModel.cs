@@ -242,14 +242,14 @@ namespace TGC.Group.Model
             instruccionesText2.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 30, FontStyle.Regular));
 
             menuText = new TgcText2D();
-            menuText.Text = "Jugar";
-            menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) + (D3DDevice.Instance.Height/18));
+            //menuText.Text = "Jugar";
+            //menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) + (D3DDevice.Instance.Height/18));
             menuText.Color = Color.Red;
             menuText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,25,FontStyle.Bold));
 
             titulo = new TgcText2D();
             titulo.Text = "DREADMAZE";
-            titulo.Position = new System.Drawing.Point(D3DDevice.Instance.Width/20, D3DDevice.Instance.Height/16);
+            titulo.Position = new System.Drawing.Point(D3DDevice.Instance.Width/5000, D3DDevice.Instance.Height/16);
             titulo.Color = Color.Yellow;
             titulo.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,80, FontStyle.Regular));
 
@@ -586,19 +586,37 @@ namespace TGC.Group.Model
             PreUpdate();
 
 
-            if (beggining)
+            if (beggining || paused)
             {
                 if (Input.keyPressed(Key.Space) && !howToPlay)
                 {
                     switch (menuState) {
 
-                        case 0: beggining = false;
+                        case 0:
+                            if (beggining)
+                            {
+                                beggining = false;
+                            }
+                            else
+                            {
+                                paused = false;
+                            }
                             camaraFps.LockCam = true;
                             camaraFps.playing = true;
                             break;
-                        case 1: howToPlay = true;
+                        case 1:
+                            if (beggining)
+                            {
+                                howToPlay = true;
+                            }
+                            else
+                            {
+                                reset();
+                            }
                             break;
                         case 2:
+                            Dispose();
+                            Program.Terminate();
                             break;
                     }
                 }
@@ -1151,7 +1169,7 @@ namespace TGC.Group.Model
             drawer2D.DrawSprite(velaSprite);
             drawer2D.DrawSprite(intensidadSprite);
             drawer2D.DrawSprite(logoSprite);
-            if (beggining)
+            if (beggining || paused)
             {
                 renderMenu();
             }
@@ -1176,14 +1194,42 @@ namespace TGC.Group.Model
                 drawer2D.DrawSprite(buttonUnselected);
                 drawer2D.DrawSprite(buttonSelected);
                 drawer2D.EndDrawSprite();
-                titulo.render();
-                menuText.render();
+                if (paused)
+                {
+                    menuText.Text = "Reanudar";
+                    menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) + (D3DDevice.Instance.Height / 18));
+                    menuText.render();
+                    menuText.Text = "Reiniciar";
+                    menuText.Position = menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 2) + (D3DDevice.Instance.Height / 16));
+                    menuText.render();
+                    menuText.Text = "Salir";
+                    menuText.Position = menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) * 2 + (D3DDevice.Instance.Height / 15));
+                    menuText.render();
+                }
+                else
+                {
+                    titulo.render();
+                    menuText.Text = "Jugar";
+                    menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) + (D3DDevice.Instance.Height / 18));
+                    menuText.render();
+                    menuText.Text = "Como Jugar";
+                    menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 2) + (D3DDevice.Instance.Height / 16));
+                    menuText.render();
+                    menuText.Text = "Salir";
+                    menuText.Position = menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) * 2 + (D3DDevice.Instance.Height / 15));
+                    menuText.render();
+                }
             }
             else
             {
+                buttonSelected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 10, (D3DDevice.Instance.Height / 8) * 6);
+                drawer2D.DrawSprite(buttonSelected);
                 drawer2D.EndDrawSprite();
                 instruccionesText1.render();
                 instruccionesText2.render();
+                menuText.Text = "Volver";
+                menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 4), (D3DDevice.Instance.Height / 2) + (D3DDevice.Instance.Height / 48)*13);
+                menuText.render();
             }
         }
 

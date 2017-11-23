@@ -152,7 +152,12 @@ namespace TGC.Group.Camera
             if (lockCam )
             {
                 leftrightRot -= -Input.XposRelative * RotationSpeed;
+                var prevupRot = updownRot;
                 updownRot -= Input.YposRelative * RotationSpeed;
+                if (updownRot > 1.5 || updownRot < -1.5)
+                {
+                    updownRot = prevupRot;
+                }
                 //Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
                 cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
                 //se crea una camera rotation auxiliar para fijar la camara en una unica posicion Y

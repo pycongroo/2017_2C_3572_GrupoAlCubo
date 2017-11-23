@@ -259,25 +259,25 @@ namespace TGC.Group.Model
 
             loseText = new TgcText2D();
             loseText.Text = "GAME OVER";
-            loseText.Position = new System.Drawing.Point(50, 300);
+            loseText.Position = new System.Drawing.Point(D3DDevice.Instance.Width / 120, D3DDevice.Instance.Height / 3);
             loseText.Color = Color.Red;
             loseText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 80, FontStyle.Regular));
 
             winText = new TgcText2D();
             winText.Text = "Felicitaciones! Has logrado escapar!";
-            winText.Position = new System.Drawing.Point(50, 300);
+            winText.Position = new System.Drawing.Point(D3DDevice.Instance.Width / 120, D3DDevice.Instance.Height / 3);
             winText.Color = Color.YellowGreen;
             winText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 80, FontStyle.Regular));
 
             restartText = new TgcText2D();
             restartText.Text = "Presiona R para reiniciar el juego";
-            restartText.Position = new System.Drawing.Point(50 , 500);
+            restartText.Position = new System.Drawing.Point(D3DDevice.Instance.Width / 120, (D3DDevice.Instance.Height / 6)*4);
             restartText.Color = Color.Orange;
             restartText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,40,FontStyle.Bold));
 
             puertaText = new TgcText2D();
             puertaText.Text = "Necesitas " + minKeys + " logos para abrir la puerta!";
-            puertaText.Position = new System.Drawing.Point(50, 500);
+            puertaText.Position = new System.Drawing.Point(D3DDevice.Instance.Width/120,D3DDevice.Instance.Height/3);
             puertaText.Color = Color.DarkCyan;
             puertaText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 40, FontStyle.Bold));
 

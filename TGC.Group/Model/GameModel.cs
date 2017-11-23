@@ -837,14 +837,9 @@ namespace TGC.Group.Model
 
             ligthBox.Position = camaraFps.Position;
             var normalLook = Vector3.Normalize(new Vector3(Camara.LookAt.X - Camara.Position.X,Camara.LookAt.Y - Camara.Position.Y, Camara.LookAt.Z - Camara.Position.Z));
-            /*normalLook.X = normalLook.X != 0 ? normalLook.X : 0;
-            normalLook.X = normalLook.X > 0 ? Camara.LookAt.X + 2 : Camara.LookAt.X - 2;
-            normalLook.Y = normalLook.Y != 0 ? normalLook.Y : 0;
-            normalLook.Y = normalLook.Y > 0 ? Camara.LookAt.Y + 0.7f : Camara.LookAt.Y - 0.7f;
-            normalLook.Z = normalLook.Z != 0 ? normalLook.Z : 0;
-            normalLook.Z = normalLook.Z > 0 ? Camara.LookAt.Z + 2 : Camara.LookAt.Z - 2;*/
-            normalLook = Vector3.Multiply(normalLook,3);
-
+            
+            normalLook = Vector3.Multiply(normalLook,4);
+            normalLook.Y -= 1.2f;
 
             linternaObj.Meshes[0].Position = Vector3.Add(Camara.LookAt,normalLook);
 

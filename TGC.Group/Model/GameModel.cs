@@ -56,7 +56,6 @@ namespace TGC.Group.Model
         private TgcText2D titulo;
         private TgcText2D instruccionesText1;
         private TgcText2D instruccionesText2;
-        private TgcText2D instruccionesText3;
         private TgcText2D restartText;
         private TgcText2D loseText;
         private TgcText2D winText;
@@ -102,6 +101,7 @@ namespace TGC.Group.Model
         private bool collide;
         private bool enemColl;
         private bool beggining;
+        private bool howToPlay;
         private bool lose;
         private bool win;
         private bool puertaTouch;
@@ -231,25 +231,25 @@ namespace TGC.Group.Model
             //instrucciones al inicio del juego
             instruccionesText1 = new TgcText2D();
             instruccionesText1.Text = "Utiliza el mouse y W/A/S/D para moverte. Consigue " + minKeys + " logos para abrir la puerta y salir del laberinto.";
-            instruccionesText1.Position = new System.Drawing.Point(5,210);
+            instruccionesText1.Position = new System.Drawing.Point(D3DDevice.Instance.Width/25,D3DDevice.Instance.Height/8);
             instruccionesText1.Color = Color.Red;
-            instruccionesText1.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 35, FontStyle.Regular));
+            instruccionesText1.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 30, FontStyle.Regular));
 
             instruccionesText2 = new TgcText2D();
             instruccionesText2.Text = "Si tu luz se acaba, pierdes. Cruzarte con el esqueleto andante disminuira tu luz. Puedes recargar tu luz recolectando Velas.";
-            instruccionesText2.Position = new System.Drawing.Point(5, 370);
+            instruccionesText2.Position = new System.Drawing.Point(D3DDevice.Instance.Width / 25, D3DDevice.Instance.Height / 2);
             instruccionesText2.Color = Color.Green;
-            instruccionesText2.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 35, FontStyle.Regular));
+            instruccionesText2.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 30, FontStyle.Regular));
 
-            instruccionesText3 = new TgcText2D();
-            instruccionesText3.Text = "Presiona SPACE para comenzar.";
-            instruccionesText3.Position = new System.Drawing.Point(50, 520);
-            instruccionesText3.Color = Color.Blue;
-            instruccionesText3.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 35, FontStyle.Regular));
+            menuText = new TgcText2D();
+            menuText.Text = "Jugar";
+            menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) + (D3DDevice.Instance.Height/18));
+            menuText.Color = Color.Red;
+            menuText.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,25,FontStyle.Bold));
 
             titulo = new TgcText2D();
             titulo.Text = "DREADMAZE";
-            titulo.Position = new System.Drawing.Point(40, 80);
+            titulo.Position = new System.Drawing.Point(D3DDevice.Instance.Width/20, D3DDevice.Instance.Height/16);
             titulo.Color = Color.Yellow;
             titulo.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace,80, FontStyle.Regular));
 
@@ -303,11 +303,11 @@ namespace TGC.Group.Model
 
             buttonUnselected = new CustomSprite();
             buttonUnselected.Bitmap = new CustomBitmap(MediaDir + "cajaMadera4.jpg", D3DDevice.Instance.Device);
-            buttonUnselected.Scaling = new Vector2((D3DDevice.Instance.Width),(D3DDevice.Instance.Height));
-            buttonUnselected.Position = Vector2.Empty;
+            buttonUnselected.Scaling = new Vector2(((float)D3DDevice.Instance.Width / 1000), (float)D3DDevice.Instance.Height / 3500);
+            buttonUnselected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 1.5f);
 
             buttonSelected = new CustomSprite();
-            buttonSelected.Bitmap = new CustomBitmap(MediaDir + "cajaMadera4.jpg", D3DDevice.Instance.Device);
+            buttonSelected.Bitmap = new CustomBitmap(MediaDir + "cajaMaderaSharp.jpg", D3DDevice.Instance.Device);
             buttonSelected.Scaling = new Vector2(((float)D3DDevice.Instance.Width/1000),(float)D3DDevice.Instance.Height/3500);
             buttonSelected.Position = new Vector2((D3DDevice.Instance.Width/16)*6,((float)D3DDevice.Instance.Height/4)*1.5f);
 
@@ -366,6 +366,7 @@ namespace TGC.Group.Model
             lose = false;
             beggining = true;
             win = false;
+            howToPlay = false;
             menuState = 0;
 
             flechaUi = new TgcArrow();
@@ -587,11 +588,48 @@ namespace TGC.Group.Model
 
             if (beggining)
             {
-                if (Input.keyPressed(Key.Space))
+                if (Input.keyPressed(Key.Space) && !howToPlay)
                 {
-                    beggining = false;
-                    camaraFps.LockCam = true;
-                    camaraFps.playing = true;
+                    switch (menuState) {
+
+                        case 0: beggining = false;
+                            camaraFps.LockCam = true;
+                            camaraFps.playing = true;
+                            break;
+                        case 1: howToPlay = true;
+                            break;
+                        case 2:
+                            break;
+                    }
+                }
+                else
+                {
+                    if(Input.keyPressed(Key.Space) && howToPlay)
+                    {
+                        howToPlay = false;
+                    }
+                }
+
+                if (Input.keyPressed(Key.UpArrow) && menuState > 0)
+                {
+                    menuState -= 1;
+                }
+                if (Input.keyPressed(Key.DownArrow) && menuState< 2)
+                {
+                    menuState += 1;
+                }
+
+                switch (menuState)
+                {
+                    case 0:
+                        buttonSelected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 1.5f);
+                        break;
+                    case 1:
+                        buttonSelected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 2.2f);
+                        break;
+                    case 2:
+                        buttonSelected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 2.9f);
+                        break;
                 }
             }
 
@@ -1068,13 +1106,13 @@ namespace TGC.Group.Model
             RenderFPS();
             //Dibuja un texto por pantalla
 
-            if (beggining)
+            /*if (beggining)
             {
                 instruccionesText1.render();
                 instruccionesText2.render();
                 instruccionesText3.render();
                 //titulo.render();
-            }
+            }*/
 
 
             if (lose)
@@ -1117,7 +1155,10 @@ namespace TGC.Group.Model
             {
                 renderMenu();
             }
-            drawer2D.EndDrawSprite();
+            else
+            {
+                drawer2D.EndDrawSprite();
+            }
             d3dDevice.EndScene();
             d3dDevice.Present();
         }
@@ -1125,8 +1166,25 @@ namespace TGC.Group.Model
         void renderMenu()
         {
             drawer2D.DrawSprite(menuSprite);
-            titulo.render();
-            drawer2D.DrawSprite(buttonSelected);
+            if (!howToPlay)
+            {
+                buttonUnselected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 1.5f);
+                drawer2D.DrawSprite(buttonUnselected);
+                buttonUnselected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 2.2f);
+                drawer2D.DrawSprite(buttonUnselected);
+                buttonUnselected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 2.9f);
+                drawer2D.DrawSprite(buttonUnselected);
+                drawer2D.DrawSprite(buttonSelected);
+                drawer2D.EndDrawSprite();
+                titulo.render();
+                menuText.render();
+            }
+            else
+            {
+                drawer2D.EndDrawSprite();
+                instruccionesText1.render();
+                instruccionesText2.render();
+            }
         }
 
         public void renderGrid()
@@ -1211,8 +1269,7 @@ namespace TGC.Group.Model
             winSound.dispose();
             restartText.Dispose();
             instruccionesText1.Dispose();
-            instruccionesText3.render();
-            instruccionesText2.render();
+            instruccionesText2.Dispose();
             intensidadSprite.Dispose();
             titulo.Dispose();
             puertaText.Dispose();

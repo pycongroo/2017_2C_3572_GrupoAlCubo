@@ -40,6 +40,7 @@ namespace TGC.Group.Model
         }
 
         private float time;
+        private float tiempo;
         private float distance2nearEnemy;
 
         private Microsoft.DirectX.Direct3D.Surface depthStencil; // Depth-stencil buffer
@@ -137,6 +138,7 @@ namespace TGC.Group.Model
         //private TgcBox Box { get; set; }
 
         private Microsoft.DirectX.Direct3D.Effect efecto;
+        private Microsoft.DirectX.Direct3D.Effect efectoVela;
 
         private List<Tgc3dSound> sonidos;
         private TgcStaticSound loseSound;
@@ -153,6 +155,7 @@ namespace TGC.Group.Model
         {
             distance2nearEnemy = 9999999999f;
             time = 0f;
+            tiempo = 0f;
             //Se crean 2 triangulos (o Quad) con las dimensiones de la pantalla con sus posiciones ya transformadas
             // x = -1 es el extremo izquiedo de la pantalla, x = 1 es el extremo derecho
             // Lo mismo para la Y con arriba y abajo
@@ -337,6 +340,7 @@ namespace TGC.Group.Model
 
             efecto = TgcShaders.Instance.TgcMeshPointLightShader;
             //efecto = TgcShaders.Instance.TgcMeshSpotLightShader;
+            efectoVela = TgcShaders.loadEffect(ShadersDir + "BasicShader.fx");
 
             Piso = new TgcPlane(new Vector3(0, 0, 0), sizePiso, TgcPlane.Orientations.XZplane, texturePiso);
             Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
@@ -768,7 +772,7 @@ namespace TGC.Group.Model
                         break;
                     }
                 }
-
+                tiempo += ElapsedTime;
                 if (collide != currCollide)
                 {
                     collide = currCollide;
@@ -833,14 +837,16 @@ namespace TGC.Group.Model
 
             ligthBox.Position = camaraFps.Position;
             var normalLook = Vector3.Normalize(new Vector3(Camara.LookAt.X - Camara.Position.X,Camara.LookAt.Y - Camara.Position.Y, Camara.LookAt.Z - Camara.Position.Z));
-            normalLook.X = normalLook.X != 0 ? normalLook.X : 0;
+            /*normalLook.X = normalLook.X != 0 ? normalLook.X : 0;
             normalLook.X = normalLook.X > 0 ? Camara.LookAt.X + 2 : Camara.LookAt.X - 2;
             normalLook.Y = normalLook.Y != 0 ? normalLook.Y : 0;
             normalLook.Y = normalLook.Y > 0 ? Camara.LookAt.Y + 0.7f : Camara.LookAt.Y - 0.7f;
             normalLook.Z = normalLook.Z != 0 ? normalLook.Z : 0;
-            normalLook.Z = normalLook.Z > 0 ? Camara.LookAt.Z + 2 : Camara.LookAt.Z - 2;
+            normalLook.Z = normalLook.Z > 0 ? Camara.LookAt.Z + 2 : Camara.LookAt.Z - 2;*/
+            normalLook = Vector3.Multiply(normalLook,3);
 
-            linternaObj.Meshes[0].Position = normalLook;
+
+            linternaObj.Meshes[0].Position = Vector3.Add(Camara.LookAt,normalLook);
 
             if (!lose && !win && !beggining && !paused)
             {
@@ -1004,6 +1010,9 @@ namespace TGC.Group.Model
             efecto.SetValue("materialSpecularColor", Color.White.ToArgb());
             efecto.SetValue("materialSpecularExp", 10f);
 
+            efectoVela.SetValue("time",tiempo);
+            linternaObj.Meshes[0].Effect = efectoVela;
+            linternaObj.Meshes[0].Technique = "RenderScene";
             linternaObj.renderAll();
 
             Piso.Effect = efecto;
@@ -1198,6 +1207,9 @@ namespace TGC.Group.Model
                 drawer2D.EndDrawSprite();
                 if (paused)
                 {
+                    titulo.Text = "PAUSA";
+                    titulo.Color = Color.Green;
+                    titulo.render();
                     menuText.Text = "Reanudar";
                     menuText.Position = new System.Drawing.Point((D3DDevice.Instance.Width / 5000), (D3DDevice.Instance.Height / 3) + (D3DDevice.Instance.Height / 18));
                     menuText.render();

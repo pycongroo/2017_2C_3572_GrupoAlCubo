@@ -230,16 +230,18 @@ namespace TGC.Group.Model
 
             //instrucciones al inicio del juego
             instruccionesText1 = new TgcText2D();
-            instruccionesText1.Text = "Utiliza el mouse y W/A/S/D para moverte. Consigue " + minKeys + " logos para abrir la puerta y salir del laberinto.";
-            instruccionesText1.Position = new System.Drawing.Point(D3DDevice.Instance.Width/25,D3DDevice.Instance.Height/8);
+            instruccionesText1.Text = "Utiliza el mouse y W/A/S/D para moverte. Consigue" + minKeys + " logos para abrir la puerta y salir del laberinto";
+            instruccionesText1.Position = new System.Drawing.Point(D3DDevice.Instance.Width/8,D3DDevice.Instance.Height/4);
             instruccionesText1.Color = Color.Red;
-            instruccionesText1.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 30, FontStyle.Regular));
+            instruccionesText1.Size = new Size((D3DDevice.Instance.Width / 4) * 3, D3DDevice.Instance.Height / 16);
+            instruccionesText1.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 25, FontStyle.Bold));
 
             instruccionesText2 = new TgcText2D();
             instruccionesText2.Text = "Si tu luz se acaba, pierdes. Cruzarte con el esqueleto andante disminuira tu luz. Puedes recargar tu luz recolectando Velas.";
-            instruccionesText2.Position = new System.Drawing.Point(D3DDevice.Instance.Width / 25, D3DDevice.Instance.Height / 2);
+            instruccionesText2.Position = new System.Drawing.Point(D3DDevice.Instance.Width / 8, D3DDevice.Instance.Height / 2);
             instruccionesText2.Color = Color.Green;
-            instruccionesText2.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 30, FontStyle.Regular));
+            instruccionesText2.Size = new Size((D3DDevice.Instance.Width / 4)*3, D3DDevice.Instance.Height / 16);
+            instruccionesText2.changeFont(new System.Drawing.Font(FontFamily.GenericMonospace, 25, FontStyle.Bold));
 
             menuText = new TgcText2D();
             //menuText.Text = "Jugar";

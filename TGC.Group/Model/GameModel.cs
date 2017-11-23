@@ -130,7 +130,6 @@ namespace TGC.Group.Model
         private Vector3 exitPos;
         private int minKeys;
         private TgcScene linternaObj;
-        private TgcArrow flechaUi;
 
         private TgcBox ligthBox { get; set; }
 
@@ -346,8 +345,18 @@ namespace TGC.Group.Model
             Techo = new TgcPlane(new Vector3(0, 511, 0), sizePiso, TgcPlane.Orientations.XZplane, texturaTecho);
             FabricarParedes();
             obstaculos.AddRange(this.paredes);
-            
+
+            var loops = 0;
             random = new Random();
+
+            while (loops < 16)
+            {
+                var index = random.Next(0, obstaculos.Count - 1);
+                obstaculos.RemoveRange(index, 1);
+                paredes.RemoveRange(index, 1);
+                loops++;
+            }
+
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);
             //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
@@ -375,9 +384,6 @@ namespace TGC.Group.Model
             howToPlay = false;
             menuState = 0;
 
-            flechaUi = new TgcArrow();
-
-            flechaUi.PStart = cameraPosition;
 
             sonidos = new List<Tgc3dSound>();
             Tgc3dSound sound;

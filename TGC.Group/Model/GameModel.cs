@@ -349,13 +349,13 @@ namespace TGC.Group.Model
             var loops = 0;
             random = new Random();
 
-            while (loops < 16)
+            /*while (loops < 16)
             {
                 var index = random.Next(0, obstaculos.Count - 1);
                 obstaculos.RemoveRange(index, 1);
                 paredes.RemoveRange(index, 1);
                 loops++;
-            }
+            }*/
 
             //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
             var size = new Vector3(100, 100, 100);

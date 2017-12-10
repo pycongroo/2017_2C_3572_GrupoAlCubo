@@ -319,6 +319,7 @@ namespace TGC.Group.Model
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
             var pathTexturaPiso = MediaDir + "rock_floor2.jpg";
+            var pathTexturaTecho = MediaDir + "rock_floor1.jpg";
             //var pathTexturaPared = MediaDir + "brick1_1.jpg";
             var pathTexturaDeco = MediaDir + "cartelera2.jpg";
             var sizeDecoXY = new Vector3(300, 300, 0);
@@ -333,7 +334,7 @@ namespace TGC.Group.Model
             //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
             var texture = TgcTexture.createTexture(pathTexturaCaja);
             var texturePiso = TgcTexture.createTexture(pathTexturaPiso);
-            var texturaTecho = TgcTexture.createTexture(pathTexturaPiso);
+            var texturaTecho = TgcTexture.createTexture(pathTexturaTecho);
             //var texturaPared = TgcTexture.createTexture(pathTexturaPared);
             var texturaDeco = TgcTexture.createTexture(pathTexturaDeco);
 
@@ -506,14 +507,21 @@ namespace TGC.Group.Model
             sonidos.Add(sound);
         }
 
-        public TgcBox CrearPared(int orientacion)
+        public TgcBox CrearPared(int orientacion, bool esparedLimmite)
         {
             float largo = 512;
             float alto = 512;
             float ancho = 50;
             var size = orientacion == ParedVertical ? new Vector3(largo, alto, ancho) :
                 new Vector3(ancho, alto, largo);
-            var textura = TgcTexture.createTexture(MediaDir + "brick1_1.jpg");
+            TgcTexture textura;
+            if (esparedLimmite)
+            {
+                textura = TgcTexture.createTexture(MediaDir + "brick1_1.jpg");
+            } else
+            {
+                textura = TgcTexture.createTexture(MediaDir + "brick3_5.jpg");
+            }
             return TgcBox.fromSize(size, textura);
 
         }
@@ -542,14 +550,14 @@ namespace TGC.Group.Model
 
                     if (this.laberinto[x, y].HasFlag(CellState.Top) && y>0)
                     {
-                        pared = CrearPared(ParedHorizontal);
+                        pared = CrearPared(ParedHorizontal, true);
                         UbicarPared(pared, CellState.Top, new Point(y, x));
                         paredes.Add(pared);
 
                     }
                     if (this.laberinto[x, y].HasFlag(CellState.Left) && x>0)
                     {
-                        pared = CrearPared(ParedVertical);
+                        pared = CrearPared(ParedVertical, true);
                         UbicarPared(pared, CellState.Left, new Point(y, x));
                         paredes.Add(pared);
 
@@ -560,19 +568,19 @@ namespace TGC.Group.Model
             }
             for (var x = 0; x < this.laberinto.Width; x++)
             {
-                pared = CrearPared(ParedHorizontal);
+                pared = CrearPared(ParedHorizontal, false);
                 UbicarPared(pared, CellState.Bottom, new Point(this.laberinto.Height, x));
                 paredes.Add(pared);
-                pared = CrearPared(ParedHorizontal);
+                pared = CrearPared(ParedHorizontal, false);
                 UbicarPared(pared, CellState.Top, new Point(0, x));
                 paredes.Add(pared);
             }
             for (var y = 0; y < this.laberinto.Height; y++)
             {
-                pared = CrearPared(ParedVertical);
+                pared = CrearPared(ParedVertical, false);
                 UbicarPared(pared, CellState.Right, new Point(y, this.laberinto.Width));
                 paredes.Add(pared);
-                pared = CrearPared(ParedVertical);
+                pared = CrearPared(ParedVertical, false);
                 UbicarPared(pared, CellState.Left, new Point(y, 0));
                 paredes.Add(pared);
             }

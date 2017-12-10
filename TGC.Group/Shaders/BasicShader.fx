@@ -14,6 +14,7 @@ float4x4 matInverseTransposeWorld; //Matriz Transpose(Invert(World))
 
 //Textura para DiffuseMap
 texture texDiffuseMap;
+
 sampler2D diffuseMap = sampler_state
 {
 	Texture = (texDiffuseMap);
@@ -23,6 +24,7 @@ sampler2D diffuseMap = sampler_state
 	MAGFILTER = LINEAR;
 	MIPFILTER = LINEAR;
 };
+
 
 float time = 0;
 
@@ -102,6 +104,8 @@ float4 ps_main(float2 Texcoord: TEXCOORD0, float4 Color : COLOR0) : COLOR0
 	// Obtener el texel de textura
 	// diffuseMap es el sampler, Texcoord son las coordenadas interpoladas
 	float4 fvBaseColor = tex2D(diffuseMap, Texcoord);
+	//float4 fvBaseColor = tex2D(s_texturaDeco, Texcoord);
+	//float4 fvBaseColor = float4(1.0, 0.0, 1.0, 1.0);
 	// combino color y textura
 	// en este ejemplo combino un 80% el color de la textura y un 20%el del vertice
 	return fvBaseColor;

@@ -50,6 +50,20 @@ float4 eyePosition; //Posicion de la camara
 float lightIntensity; //Intensidad de la luz
 float lightAttenuation; //Factor de atenuacion de la luz
 
+
+texture texturaDeco;
+
+sampler2D s_texturaDeco = sampler_state
+{
+	Texture = (texturaDeco);
+	ADDRESSU = WRAP;
+	ADDRESSV = WRAP;
+	MINFILTER = LINEAR;
+	MAGFILTER = LINEAR;
+	MIPFILTER = LINEAR;
+};
+
+
 /**************************************************************************************/
 /* VERTEX_COLOR */
 /**************************************************************************************/
@@ -237,6 +251,14 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 
 	//Obtener texel de la textura
 	float4 texelColor = tex2D(diffuseMap, input.Texcoord);
+	float4 decoColor = tex2D(s_texturaDeco, input.Texcoord);
+	float4 mixedColor = texelColor + decoColor*(decoColor.w);
+	if ((decoColor.r+decoColor.g+decoColor.b)/3>0.5) {
+		mixedColor = texelColor;
+	}
+	else {
+		mixedColor = decoColor;
+	}
 
 	//Componente Ambient
 	float3 ambientLight = intensity * lightColor * materialAmbientColor;
@@ -253,9 +275,11 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 
 	/* Color final: modular (Emissive + Ambient + Diffuse) por el color de la textura, y luego sumar Specular.
 	   El color Alpha sale del diffuse material */
-	float4 finalColor = float4(saturate(materialEmissiveColor + ambientLight + diffuseLight) * texelColor + specularLight, materialDiffuseColor.a);
-
+	float4 finalColor = float4(saturate(materialEmissiveColor + ambientLight + diffuseLight) * mixedColor + specularLight, materialDiffuseColor.a);
+	
 	return finalColor;
+	//return decoColor;
+	//return float4(1.0, 0.0, 0.0, 0.0);
 }
 
 /*
@@ -372,7 +396,9 @@ float4 ps_diffuseMapAndLightmap(PS_INPUT_DIFFUSE_MAP_AND_LIGHTMAP input) : COLOR
 	   El color Alpha sale del diffuse material */
 	float4 finalColor = float4(saturate(materialEmissiveColor + ambientLight + diffuseLight) * (texelColor * lightmapColor) + specularLight, materialDiffuseColor.a);
 
+
 	return finalColor;
+	//return float4(1.0, 1.0, 1.0, 1.0);
 }
 
 //technique DIFFUSE_MAP_AND_LIGHTMAP

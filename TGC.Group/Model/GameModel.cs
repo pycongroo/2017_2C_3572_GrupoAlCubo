@@ -65,6 +65,8 @@ namespace TGC.Group.Model
         private CustomSprite buttonUnselected;
         private CustomSprite buttonSelected;
 
+        private Microsoft.DirectX.Direct3D.Texture texturaSangre;
+
         private int menuState;
         private int paredesXY = 32; //potencia de 2
         private int paredesYZ = 32; //potencia de 2
@@ -177,6 +179,8 @@ namespace TGC.Group.Model
                 D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth
                 , D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Microsoft.DirectX.Direct3D.Usage.RenderTarget,
                 Microsoft.DirectX.Direct3D.Format.X8R8G8B8, Microsoft.DirectX.Direct3D.Pool.Default);
+
+            texturaSangre = TgcTexture.createTexture(MediaDir + "Sangre.jpg").D3dTexture;
 
             //Creamos un DepthStencil que debe ser compatible con nuestra definicion de renderTarget2D.
             depthStencil =
@@ -1018,6 +1022,8 @@ namespace TGC.Group.Model
             efecto.SetValue("materialDiffuseColor", Color.White.ToArgb());
             efecto.SetValue("materialSpecularColor", Color.White.ToArgb());
             efecto.SetValue("materialSpecularExp", 10f);
+            efecto.SetValue("texturaDeco", texturaSangre);
+
 
             efectoVela.SetValue("time",tiempo);
             linternaObj.Meshes[0].Effect = efectoVela;
@@ -1026,6 +1032,7 @@ namespace TGC.Group.Model
 
             Piso.Effect = efecto;
             Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
+            System.Console.WriteLine(TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType));
             Piso.render();
             Techo.Effect = efecto;
             Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);

@@ -66,6 +66,8 @@ namespace TGC.Group.Model
         private CustomSprite buttonSelected;
 
         private Microsoft.DirectX.Direct3D.Texture texturaSangre;
+        private Microsoft.DirectX.Direct3D.Texture texturaRoto;
+        private Microsoft.DirectX.Direct3D.Texture texturaGarra;
 
         private int menuState;
         private int paredesXY = 32; //potencia de 2
@@ -97,6 +99,7 @@ namespace TGC.Group.Model
         private static readonly int ParedHorizontal = 1;
         private static readonly int ParedVertical = 2;
         private List<TgcBox> paredes = new List<TgcBox>();
+        private List<String> boolDecoParedes;
         private float anchoPared = 512;
         private float altoPared = 512;
         private float grosorPared = 50;
@@ -154,6 +157,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
+            boolDecoParedes = new List<String>();
             distance2nearEnemy = 9999999999f;
             time = 0f;
             tiempo = 0f;
@@ -181,6 +185,8 @@ namespace TGC.Group.Model
                 Microsoft.DirectX.Direct3D.Format.X8R8G8B8, Microsoft.DirectX.Direct3D.Pool.Default);
 
             texturaSangre = TgcTexture.createTexture(MediaDir + "Sangre.jpg").D3dTexture;
+            texturaRoto = TgcTexture.createTexture(MediaDir + "efectoRoto2.jpg").D3dTexture;
+            texturaGarra = TgcTexture.createTexture(MediaDir + "garra.jpg").D3dTexture;
 
             //Creamos un DepthStencil que debe ser compatible con nuestra definicion de renderTarget2D.
             depthStencil =
@@ -557,14 +563,14 @@ namespace TGC.Group.Model
                         pared = CrearPared(ParedHorizontal, true);
                         UbicarPared(pared, CellState.Top, new Point(y, x));
                         paredes.Add(pared);
-
+                        
                     }
                     if (this.laberinto[x, y].HasFlag(CellState.Left) && x>0)
                     {
                         pared = CrearPared(ParedVertical, true);
                         UbicarPared(pared, CellState.Left, new Point(y, x));
                         paredes.Add(pared);
-
+                        //pared.Technique = "DIFFUSE_MAP_BLOOD"
                     }
 
                 }
@@ -1022,7 +1028,9 @@ namespace TGC.Group.Model
             efecto.SetValue("materialDiffuseColor", Color.White.ToArgb());
             efecto.SetValue("materialSpecularColor", Color.White.ToArgb());
             efecto.SetValue("materialSpecularExp", 10f);
-            efecto.SetValue("texturaDeco", texturaSangre);
+            efecto.SetValue("texturaDecoSangre", texturaSangre);
+            efecto.SetValue("texturaDecoRoto", texturaRoto);
+            efecto.SetValue("texturaDecoGarra", texturaGarra);
 
 
             efectoVela.SetValue("time",tiempo);
@@ -1031,11 +1039,13 @@ namespace TGC.Group.Model
             linternaObj.renderAll();
 
             Piso.Effect = efecto;
-            Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
-            System.Console.WriteLine(TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType));
+            //Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
+            Piso.Technique = "DIFFUSE_MAP_BLOOD";
+            //System.Console.WriteLine(TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType));
             Piso.render();
             Techo.Effect = efecto;
-            Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
+            //Techo.Technique = TgcShaders.Instance.getTgcMeshTechnique(Techo.toMesh("techo").RenderType);
+            Techo.Technique = "DIFFUSE_MAP_BROKEN";
             Techo.render();
 
             //renderGrid(posX, posZ);
@@ -1271,15 +1281,31 @@ namespace TGC.Group.Model
 
             //System.Console.WriteLine("X : [" + posiX + ", " + posfX + "]");
             //System.Console.WriteLine("Z : [" + posiZ + ", " + posfZ + "]");
+            //for (int i = 0; i < paredes.ToArray().Length; i++)
             foreach (TgcBox pared in this.paredes)
             {
+                //var pared = paredes[i];
                 Point cuadrante = new Point((int) pared.Position.X / 512, (int) pared.Position.Z / 512);
                 if (cuadrante.X >= posiX && cuadrante.X <= posfX && cuadrante.Y >= posiZ && cuadrante.Y <= posfZ)
                 {
                     pared.Transform = transformBox(pared);
                     pared.Effect = efecto;
                     auxMesh = pared.toMesh("pared");
-                    pared.Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
+
+                    //if (boolDecoParedes[paredes.FindIndex(a => a==pared)])
+                    int indice = paredes.FindIndex(a => a == pared);
+                    if ((indice*indice+1)%7<=1)
+                    {
+                        pared.Technique = "DIFFUSE_MAP_GARRA";
+                    }
+                    else if ((indice * indice + 1) % 7 <= 3)
+                    {
+                        pared.Technique = "DIFFUSE_MAP_BLOOD";
+                    }
+                    else
+                    {
+                        pared.Technique = TgcShaders.Instance.getTgcMeshTechnique(auxMesh.RenderType);
+                    }
                     pared.render();
                     auxMesh.dispose();
                     if (bMode) pared.BoundingBox.render();
@@ -1302,7 +1328,8 @@ namespace TGC.Group.Model
                     {
                         currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
                         currentScene[i, j].Meshes[0].Effect = efecto;
-                        currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        //currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        currentScene[i, j].Meshes[0].Technique = "DIFFUSE_MAP_BLOOD";
                         currentScene[i, j].Meshes[0].render();
                     }
                     if (candleAp[i, j])

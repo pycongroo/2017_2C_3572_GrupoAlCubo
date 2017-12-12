@@ -141,6 +141,8 @@ namespace TGC.Group.Model
         private int countParticleFuego;
         private string fuegoTexturePath;
 
+        private List<Vector3> ligthsPos;
+
         private TgcBox ligthBox { get; set; }
 
         //Caja que se muestra en el ejemplo.
@@ -444,6 +446,8 @@ namespace TGC.Group.Model
 
             fuego.Position = linternaObj.Meshes[0].Position;
 
+            ligthsPos = new List<Vector3>();
+
             for (int i = 0; i < paredesXY; i++)
             {
                 for (int j = 0; j < paredesYZ; j++)
@@ -491,6 +495,11 @@ namespace TGC.Group.Model
                             else
                             {
                                 keyAp[i, j] = false;
+                                if (random.Next(0,20) < 1)
+                                {
+                                    var pos = new Vector3(512 * i + 256, 220, 512 * j + 256);
+                                    ligthsPos.Add(pos);
+                                }
                             }
                         }
                     }
@@ -508,6 +517,7 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
+            ligthsPos.Add(ligthBox.Position);
             var start = 0;
             var end = 9;
             while (start < end) {
@@ -871,7 +881,10 @@ namespace TGC.Group.Model
             else spriteXScale = 0f;
             intensidadSprite.Scaling = new Vector2(spriteXScale, intensidadSprite.Scaling.Y);
 
+            ligthsPos.Remove(ligthBox.Position);
             ligthBox.Position = camaraFps.Position;
+            ligthsPos.Add(ligthBox.Position);
+
             var normalLook = Vector3.Normalize(new Vector3(Camara.LookAt.X - Camara.Position.X,Camara.LookAt.Y - Camara.Position.Y, Camara.LookAt.Z - Camara.Position.Z));
             
             normalLook = Vector3.Multiply(normalLook,4);
@@ -1316,6 +1329,8 @@ namespace TGC.Group.Model
                 {
                     pared.Transform = transformBox(pared);
                     pared.Effect = efecto;
+                    var posit = getClosestLight(pared.Position);
+                    pared.Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(posit));
                     auxMesh = pared.toMesh("pared");
 
                     //if (boolDecoParedes[paredes.FindIndex(a => a==pared)])
@@ -1343,6 +1358,8 @@ namespace TGC.Group.Model
             {
                 salida.Meshes[0].Effect = efecto;
                 salida.Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(salida.Meshes[0].RenderType);
+                var positExitLigth = getClosestLight(salida.Meshes[0].Position);
+                salida.Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positExitLigth));
                 salida.renderAll();
             }
 
@@ -1356,6 +1373,8 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Effect = efecto;
                         //currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         currentScene[i, j].Meshes[0].Technique = "DIFFUSE_MAP_BLOOD";
+                        var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
+                        currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
                         currentScene[i, j].Meshes[0].render();
                     }
                     if (candleAp[i, j])
@@ -1363,12 +1382,16 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(100, 100, 100));
                         currentScene[i, j].Meshes[0].Effect = efecto;
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
+                        currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
                         currentScene[i, j].Meshes[0].render();
                     }
                     if (keyAp[i, j])
                     {
                         currentScene[i, j].Meshes[0].Transform = Matrix.Scaling(new Vector3(80, 200, 80));
                         currentScene[i, j].Meshes[0].Effect = efecto;
+                        var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
+                        currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         currentScene[i, j].Meshes[0].render();
                     }
@@ -1405,6 +1428,8 @@ namespace TGC.Group.Model
             linternaObj.disposeAll();
             paredes.Clear();
             fuego.dispose();
+            ligthBox.dispose();
+            ligthsPos.Clear();
 
             for (int i = 0; i < paredesXY; i++)
             {
@@ -1461,6 +1486,24 @@ namespace TGC.Group.Model
             this.Init();
             //ligthIntensity = 40;
                        
+        }
+
+        private Vector3 getClosestLight(Vector3 pos)
+        {
+            var minDist = float.MaxValue;
+            Vector3 minLight = ligthBox.Position;
+
+            foreach (var posit in ligthsPos)
+            {
+                var distSq = Vector3.LengthSq(pos - posit);
+                if (distSq < minDist)
+                {
+                    minDist = distSq;
+                    minLight = posit;
+                }
+            }
+
+            return minLight;
         }
     }
 }

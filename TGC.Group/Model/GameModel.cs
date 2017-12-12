@@ -2,6 +2,7 @@ using Microsoft.DirectX;
 using Microsoft.DirectX.DirectInput;
 using System.Drawing;
 using TGC.Core.Direct3D;
+using TGC.Core.Particle;
 using TGC.Core.Geometry;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
@@ -136,6 +137,10 @@ namespace TGC.Group.Model
         private int minKeys;
         private TgcScene linternaObj;
 
+        private ParticleEmitter fuego;
+        private int countParticleFuego;
+        private string fuegoTexturePath;
+
         private TgcBox ligthBox { get; set; }
 
         //Caja que se muestra en el ejemplo.
@@ -200,6 +205,11 @@ namespace TGC.Group.Model
 
             //Configurar Technique dentro del shader
             postEffect.Technique = "CustomTechnique";
+
+            fuegoTexturePath = MediaDir + "fuego.png";
+            countParticleFuego = 10;
+            fuego = new ParticleEmitter(fuegoTexturePath,countParticleFuego);
+
 
             //algoritmo de juego
             laberinto = new Maze(paredesXY, paredesYZ);
@@ -431,6 +441,8 @@ namespace TGC.Group.Model
             linternaObj.Meshes[0].AlphaBlendEnable = true;
             linternaObj.Meshes[0].Position = new Vector3(85, 188.5f, 208);
             linternaObj.Meshes[0].Scale = new Vector3(0.05f,0.05f,0.05f);
+
+            fuego.Position = linternaObj.Meshes[0].Position;
 
             for (int i = 0; i < paredesXY; i++)
             {
@@ -866,6 +878,8 @@ namespace TGC.Group.Model
             normalLook.Y -= 1.2f;
 
             linternaObj.Meshes[0].Position = Vector3.Add(Camara.LookAt,normalLook);
+            fuego.Position = Vector3.Add(Camara.LookAt, Vector3.Multiply(normalLook,4));
+            fuego.Position = new Vector3(fuego.Position.X,fuego.Position.Y+4,fuego.Position.Z);
 
             if (!lose && !win && !beggining && !paused)
             {
@@ -997,6 +1011,9 @@ namespace TGC.Group.Model
 
             //D3DDevice.Instance.Device.Clear(Microsoft.DirectX.Direct3D.ClearFlags.Target, Color.Black, 1.0f, 0);
 
+            D3DDevice.Instance.ParticlesEnabled = true;
+            D3DDevice.Instance.EnableParticles();
+
             if (puertaTouch && !win)
             {
                 puertaText.render();
@@ -1038,6 +1055,14 @@ namespace TGC.Group.Model
             linternaObj.Meshes[0].Technique = "RenderScene";
             linternaObj.renderAll();
 
+            fuego.MinSizeParticle = 0.1f;
+            fuego.MaxSizeParticle = 0.4f;
+            fuego.ParticleTimeToLive = 0.5f;
+            fuego.CreationFrecuency = 0.01f;
+            fuego.Dispersion = 80;
+            fuego.Speed = new Vector3(1, 1, 1);
+
+
             Piso.Effect = efecto;
             //Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);
             Piso.Technique = "DIFFUSE_MAP_BLOOD";
@@ -1064,7 +1089,8 @@ namespace TGC.Group.Model
                 
                 enemigo.Render(efecto);
             }
-            
+            fuego.render(ElapsedTime);
+
             //PostRender();
         }
 
@@ -1378,6 +1404,7 @@ namespace TGC.Group.Model
             puertaText.Dispose();
             linternaObj.disposeAll();
             paredes.Clear();
+            fuego.dispose();
 
             for (int i = 0; i < paredesXY; i++)
             {

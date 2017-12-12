@@ -142,6 +142,7 @@ namespace TGC.Group.Model
         private string fuegoTexturePath;
 
         private List<Vector3> ligthsPos;
+        private List<ParticleEmitter> flames;
 
         private TgcBox ligthBox { get; set; }
 
@@ -446,6 +447,8 @@ namespace TGC.Group.Model
 
             fuego.Position = linternaObj.Meshes[0].Position;
 
+            flames = new List<ParticleEmitter>();
+
             ligthsPos = new List<Vector3>();
 
             for (int i = 0; i < paredesXY; i++)
@@ -495,10 +498,14 @@ namespace TGC.Group.Model
                             else
                             {
                                 keyAp[i, j] = false;
-                                if (random.Next(0,20) < 1)
+                                if (random.Next(0,90) < 1)
                                 {
                                     var pos = new Vector3(512 * i + 256, 220, 512 * j + 256);
                                     ligthsPos.Add(pos);
+                                    var fire = new ParticleEmitter(fuegoTexturePath,countParticleFuego);
+                                    fire.Position = pos;
+                                    
+                                    flames.Add(fire);
                                 }
                             }
                         }
@@ -1331,6 +1338,7 @@ namespace TGC.Group.Model
                     pared.Effect = efecto;
                     var posit = getClosestLight(pared.Position);
                     pared.Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(posit));
+                    if (posit != ligthBox.Position && !lose) pared.Effect.SetValue("lightIntensity", 40);
                     auxMesh = pared.toMesh("pared");
 
                     //if (boolDecoParedes[paredes.FindIndex(a => a==pared)])
@@ -1360,7 +1368,23 @@ namespace TGC.Group.Model
                 salida.Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(salida.Meshes[0].RenderType);
                 var positExitLigth = getClosestLight(salida.Meshes[0].Position);
                 salida.Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positExitLigth));
+                if (positExitLigth != ligthBox.Position && !lose) salida.Meshes[0].Effect.SetValue("lightIntensity", 40);
                 salida.renderAll();
+            }
+
+            foreach (ParticleEmitter fire in flames)
+            {
+                Point firePoint = new Point((int)fire.Position.X / 512, (int)fire.Position.Z / 512);
+                if (firePoint.X >= posiX && firePoint.X <= posfX && firePoint.Y >= posiZ && firePoint.Y <= posfZ)
+                {
+                    fire.MinSizeParticle = 30;
+                    fire.MaxSizeParticle = 90;
+                    fire.ParticleTimeToLive = 1;
+                    fire.CreationFrecuency = 0.01f;
+                    fire.Dispersion = 80;
+                    fire.Speed = new Vector3(100, 100, 100);
+                    fire.render(ElapsedTime);
+                }
             }
 
             for (int i = posiX; i < posfX; i++)
@@ -1375,6 +1399,7 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Technique = "DIFFUSE_MAP_BLOOD";
                         var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
                         currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
+                        if (positLigth != ligthBox.Position && !lose) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
                         currentScene[i, j].Meshes[0].render();
                     }
                     if (candleAp[i, j])
@@ -1384,6 +1409,7 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
                         currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
+                        if (positLigth != ligthBox.Position && !lose) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
                         currentScene[i, j].Meshes[0].render();
                     }
                     if (keyAp[i, j])
@@ -1393,6 +1419,7 @@ namespace TGC.Group.Model
                         var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
                         currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
+                        if (positLigth != ligthBox.Position && !lose) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
                         currentScene[i, j].Meshes[0].render();
                     }
                 }
@@ -1426,9 +1453,17 @@ namespace TGC.Group.Model
             titulo.Dispose();
             puertaText.Dispose();
             linternaObj.disposeAll();
+            foreach( TgcBox pared in paredes)
+            {
+                pared.dispose();
+            }
             paredes.Clear();
             fuego.dispose();
             ligthBox.dispose();
+            foreach (ParticleEmitter fire in flames)
+            {
+                fire.dispose();
+            }
             ligthsPos.Clear();
 
             for (int i = 0; i < paredesXY; i++)

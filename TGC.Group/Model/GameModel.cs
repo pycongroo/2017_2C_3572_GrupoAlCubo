@@ -1338,7 +1338,7 @@ namespace TGC.Group.Model
                     pared.Effect = efecto;
                     var posit = getClosestLight(pared.Position);
                     pared.Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(posit));
-                    if (posit != ligthBox.Position && !lose) pared.Effect.SetValue("lightIntensity", 40);
+                    if (posit != ligthBox.Position && !lose && ligthIntensity < 40) pared.Effect.SetValue("lightIntensity", 40);
                     auxMesh = pared.toMesh("pared");
 
                     //if (boolDecoParedes[paredes.FindIndex(a => a==pared)])
@@ -1368,7 +1368,7 @@ namespace TGC.Group.Model
                 salida.Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(salida.Meshes[0].RenderType);
                 var positExitLigth = getClosestLight(salida.Meshes[0].Position);
                 salida.Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positExitLigth));
-                if (positExitLigth != ligthBox.Position && !lose) salida.Meshes[0].Effect.SetValue("lightIntensity", 40);
+                if (positExitLigth != ligthBox.Position && !lose && ligthIntensity < 40) salida.Meshes[0].Effect.SetValue("lightIntensity", 40);
                 salida.renderAll();
             }
 
@@ -1399,7 +1399,7 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Technique = "DIFFUSE_MAP_BLOOD";
                         var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
                         currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
-                        if (positLigth != ligthBox.Position && !lose) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
+                        if (positLigth != ligthBox.Position && !lose && ligthIntensity < 40) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
                         currentScene[i, j].Meshes[0].render();
                     }
                     if (candleAp[i, j])
@@ -1409,7 +1409,7 @@ namespace TGC.Group.Model
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
                         var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
                         currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
-                        if (positLigth != ligthBox.Position && !lose) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
+                        if (positLigth != ligthBox.Position && !lose && ligthIntensity < 40) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
                         currentScene[i, j].Meshes[0].render();
                     }
                     if (keyAp[i, j])
@@ -1419,7 +1419,7 @@ namespace TGC.Group.Model
                         var positLigth = getClosestLight(currentScene[i, j].Meshes[0].Position);
                         currentScene[i, j].Meshes[0].Effect.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(positLigth));
                         currentScene[i, j].Meshes[0].Technique = TgcShaders.Instance.getTgcMeshTechnique(currentScene[i, j].Meshes[0].RenderType);
-                        if (positLigth != ligthBox.Position && !lose) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
+                        if (positLigth != ligthBox.Position && !lose && ligthIntensity < 40) currentScene[i, j].Meshes[0].Effect.SetValue("lightIntensity", 40);
                         currentScene[i, j].Meshes[0].render();
                     }
                 }

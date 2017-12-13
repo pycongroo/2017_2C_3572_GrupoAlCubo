@@ -498,7 +498,7 @@ namespace TGC.Group.Model
                             else
                             {
                                 keyAp[i, j] = false;
-                                if (random.Next(0,90) < 1)
+                                if (random.Next(0,60) < 1)
                                 {
                                     var pos = new Vector3(512 * i + 256, 220, 512 * j + 256);
                                     ligthsPos.Add(pos);
@@ -1377,11 +1377,11 @@ namespace TGC.Group.Model
                 Point firePoint = new Point((int)fire.Position.X / 512, (int)fire.Position.Z / 512);
                 if (firePoint.X >= posiX && firePoint.X <= posfX && firePoint.Y >= posiZ && firePoint.Y <= posfZ)
                 {
-                    fire.MinSizeParticle = 30;
-                    fire.MaxSizeParticle = 90;
-                    fire.ParticleTimeToLive = 1;
-                    fire.CreationFrecuency = 0.01f;
-                    fire.Dispersion = 80;
+                    fire.MinSizeParticle = 1;
+                    fire.MaxSizeParticle = 6;
+                    fire.ParticleTimeToLive = 2;
+                    fire.CreationFrecuency = 0.05f;
+                    fire.Dispersion = 150;
                     fire.Speed = new Vector3(100, 100, 100);
                     fire.render(ElapsedTime);
                 }

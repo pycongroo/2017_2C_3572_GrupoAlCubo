@@ -130,6 +130,7 @@ namespace TGC.Group.Model
         private Vector3 exitPos;
         private int minKeys;
         private TgcScene linternaObj;
+        private bool iluminacionPorLinterna = false;
 
         private TgcBox ligthBox { get; set; }
 
@@ -701,6 +702,12 @@ namespace TGC.Group.Model
                 godMode = !godMode;
             }
 
+            if (Input.keyPressed(Key.L) && !beggining && !win && !paused && !lose)
+            {
+                efecto = !iluminacionPorLinterna? TgcShaders.Instance.TgcMeshSpotLightShader : TgcShaders.Instance.TgcMeshPointLightShader;
+                iluminacionPorLinterna = !iluminacionPorLinterna;
+            }
+
             if ((lose && Input.keyPressed(Key.M)) || (camaraFps.LockCam && Input.keyPressed(Key.M)))
             {
                 this.reset();
@@ -986,23 +993,45 @@ namespace TGC.Group.Model
             //TgcMesh auxMesh = null;
             //var ligthDir = Camara.LookAt;
             //ligthDir.Normalize();
-            efecto.SetValue("lightColor", Color.LightYellow.ToArgb());
-            efecto.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(ligthBox.Position));
-            efecto.SetValue("eyePosition", TgcParserUtils.vector3ToFloat4Array(Camara.Position));
-            //efecto.SetValue("spotLightDir", TgcParserUtils.vector3ToFloat3Array(ligthDir));
-            efecto.SetValue("lightIntensity", ligthIntensity);
-            efecto.SetValue("lightAttenuation", 0.29f);
-            //efecto.SetValue("spotLightAngleCos", FastMath.ToRad(18));
-            //efecto.SetValue("spotLightExponent", 11f);
-            if (paused)
+            if (!iluminacionPorLinterna)
             {
-                DrawText.drawText(" Hay " + enemigos.Count + " Enemigos. Con G ingresa en modo dios. La salida esta en la pos " + exitPos, 600, 300, Color.OrangeRed);
+                efecto.SetValue("lightColor", Color.LightYellow.ToArgb());
+                efecto.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(ligthBox.Position));
+                efecto.SetValue("eyePosition", TgcParserUtils.vector3ToFloat4Array(Camara.Position));
+                //efecto.SetValue("spotLightDir", TgcParserUtils.vector3ToFloat3Array(ligthDir));
+                efecto.SetValue("lightIntensity", ligthIntensity);
+                efecto.SetValue("lightAttenuation", 0.29f);
+                //efecto.SetValue("spotLightAngleCos", FastMath.ToRad(18));
+                //efecto.SetValue("spotLightExponent", 11f);
+                if (paused)
+                {
+                    DrawText.drawText(" Hay " + enemigos.Count + " Enemigos. Con G ingresa en modo dios. La salida esta en la pos " + exitPos, 600, 300, Color.OrangeRed);
+                }
+                efectoVela.SetValue("time", tiempo);
+                linternaObj.Meshes[0].Effect = efectoVela;
+                linternaObj.Meshes[0].Technique = "RenderScene";
+                linternaObj.renderAll();
+            } else {
+                efecto.SetValue("lightColor", Color.LightSteelBlue.ToArgb());
+                efecto.SetValue("lightPosition", TgcParserUtils.vector3ToFloat4Array(ligthBox.Position));
+                efecto.SetValue("eyePosition", TgcParserUtils.vector3ToFloat4Array(camaraFps.Position));
+                var lightDir = camaraFps.LookAt - camaraFps.Position;
+                lightDir.Normalize();
+                efecto.SetValue("spotLightDir", TgcParserUtils.vector3ToFloat3Array(lightDir));
+                efecto.SetValue("lightIntensity", ligthIntensity > 10? ligthIntensity : 10);
+                efecto.SetValue("lightAttenuation", 0.1f);
+                // 50 es el valor incial de la intesidad. Cambio escala y aplico recorte.
+                float recorteVision = ((50f * (18f / 50f)) - (ligthIntensity * (18f / 50f))) * 2f;
+                efecto.SetValue("spotLightAngleCos", FastMath.ToRad(recorteVision < 18? 36 + recorteVision : 54));
+                efecto.SetValue("spotLightExponent", 13f);
             }
+
             //Cargar variables de shader de Material. El Material en realidad deberia ser propio de cada mesh. Pero en este ejemplo se simplifica con uno comun para todos
             if (!godMode)
             {
                 efecto.SetValue("materialEmissiveColor", Color.Black.ToArgb());
-            } else
+            }
+            else
             {
                 efecto.SetValue("materialEmissiveColor", Color.White.ToArgb());
             }
@@ -1011,10 +1040,6 @@ namespace TGC.Group.Model
             efecto.SetValue("materialSpecularColor", Color.White.ToArgb());
             efecto.SetValue("materialSpecularExp", 10f);
 
-            efectoVela.SetValue("time",tiempo);
-            linternaObj.Meshes[0].Effect = efectoVela;
-            linternaObj.Meshes[0].Technique = "RenderScene";
-            linternaObj.renderAll();
 
             Piso.Effect = efecto;
             Piso.Technique = TgcShaders.Instance.getTgcMeshTechnique(Piso.toMesh("piso").RenderType);

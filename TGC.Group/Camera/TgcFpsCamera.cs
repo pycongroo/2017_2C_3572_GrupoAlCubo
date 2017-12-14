@@ -201,10 +201,11 @@ namespace TGC.Group.Camera
         /// </summary>
         /// <param name="position"></param>
         /// <param name="directionView"> debe ser normalizado.</param>
-        public override void SetCamera(Vector3 position, Vector3 directionView)
+        public override void SetCamera(Vector3 position, Vector3 directionView, Vector3 upVector)
         {
             positionEye = position;
             this.directionView = directionView;
+            this.UpVector = upVector;
         }
 
         public void UpdateCollision(bool value, Vector3 lastpos)

@@ -43,6 +43,7 @@ namespace TGC.Group.Model
         private float time;
         private float tiempo;
         private float distance2nearEnemy;
+        private float sceneTime;
 
         private Microsoft.DirectX.Direct3D.Surface depthStencil; // Depth-stencil buffer
         private Microsoft.DirectX.Direct3D.Surface depthStencilOld;
@@ -108,6 +109,7 @@ namespace TGC.Group.Model
         private bool collide;
         private bool enemColl;
         private bool beggining;
+        private bool starting;
         private bool howToPlay;
         private bool lose;
         private bool win;
@@ -136,6 +138,8 @@ namespace TGC.Group.Model
         private Vector3 exitPos;
         private int minKeys;
         private TgcScene linternaObj;
+
+        private Vector3[] initPosition;
 
         private ParticleEmitter fuego;
         private int countParticleFuego;
@@ -169,6 +173,7 @@ namespace TGC.Group.Model
             distance2nearEnemy = 9999999999f;
             time = 0f;
             tiempo = 0f;
+            sceneTime = 0f;
             //Se crean 2 triangulos (o Quad) con las dimensiones de la pantalla con sus posiciones ya transformadas
             // x = -1 es el extremo izquiedo de la pantalla, x = 1 es el extremo derecho
             // Lo mismo para la Y con arriba y abajo
@@ -244,6 +249,7 @@ namespace TGC.Group.Model
             godMode = false;
             bMode = false;
             paused = false;
+            starting = false;
             ligthIntensity = 50f;
             objCount = 0;
             candleCount = 0;
@@ -394,6 +400,7 @@ namespace TGC.Group.Model
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
             var cameraPosition = new Vector3(100, 200, 220);
+            initPosition = new Vector3[3];
             //playerBBox.Position = cameraPosition;
             playerBBox = new TgcBox();
             playerBBox = TgcBox.fromSize(cameraPosition, new Vector3(80,80,80));
@@ -522,7 +529,9 @@ namespace TGC.Group.Model
             //Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
-
+            initPosition[0] = cameraPosition;
+            initPosition[1] = camaraFps.LookAt;
+            initPosition[2] = camaraFps.UpVector;
             ligthBox = TgcBox.fromSize(cameraPosition, new Vector3(20,20,20));
             ligthsPos.Add(ligthBox.Position);
             var start = 0;
@@ -660,8 +669,7 @@ namespace TGC.Group.Model
                             {
                                 paused = false;
                             }
-                            camaraFps.LockCam = true;
-                            camaraFps.playing = true;
+                            
                             break;
                         case 1:
                             if (beggining)
@@ -709,7 +717,32 @@ namespace TGC.Group.Model
                         break;
                 }
             }
-
+            if (beggining)
+            {
+                if(sceneTime < 6)
+                {
+                    sceneTime += ElapsedTime;
+                }
+                else
+                {
+                    sceneTime = 0;
+                    var randomPos = new Vector3(random.Next(0,5000), random.Next(150,250), random.Next(0,5000));
+                    camaraFps.SetCamera(randomPos, camaraFps.LookAt,camaraFps.UpVector);
+                }
+            }
+            else
+            {
+                if (!starting)
+                {
+                    camaraFps = new TgcFpsCamera(initPosition[0], 850, 500, true,Input);
+                    Camara = camaraFps;
+                    starting = true;
+                    camaraFps.LockCam = true;
+                    camaraFps.playing = true;
+                    playerBBox.Position = camaraFps.Position;
+                    ligthBox.Position = camaraFps.Position;
+                }
+            }
             if (lose)
             {
                 loseSound.play();
@@ -926,7 +959,6 @@ namespace TGC.Group.Model
                     CrearEnemigos();
                 }
             }
-            //UpdateView();
             
         }
 
@@ -1049,10 +1081,10 @@ namespace TGC.Group.Model
             efecto.SetValue("lightAttenuation", 0.29f);
             //efecto.SetValue("spotLightAngleCos", FastMath.ToRad(18));
             //efecto.SetValue("spotLightExponent", 11f);
-            if (paused)
+            /*if (paused)
             {
                 DrawText.drawText(" Hay " + enemigos.Count + " Enemigos. Con G ingresa en modo dios. La salida esta en la pos " + exitPos, 600, 300, Color.OrangeRed);
-            }
+            }*/
             //Cargar variables de shader de Material. El Material en realidad deberia ser propio de cada mesh. Pero en este ejemplo se simplifica con uno comun para todos
             if (!godMode)
             {
@@ -1266,7 +1298,8 @@ namespace TGC.Group.Model
 
         void renderMenu()
         {
-            drawer2D.DrawSprite(menuSprite);
+            //drawer2D.DrawSprite(menuSprite);
+            
             if (!howToPlay)
             {
                 buttonUnselected.Position = new Vector2((D3DDevice.Instance.Width / 16) * 6, ((float)D3DDevice.Instance.Height / 4) * 1.5f);
@@ -1436,7 +1469,7 @@ namespace TGC.Group.Model
             //Dispose de la caja.
             //Box.dispose();
             playerBBox.dispose();
-            salida.disposeAll();
+            salida.Meshes[0].dispose();
             foreach (TgcBox pared in this.paredes)
             {
                 pared.dispose();

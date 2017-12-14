@@ -158,6 +158,7 @@ namespace TGC.Group.Model
 
         private List<Tgc3dSound> sonidos;
         private TgcStaticSound loseSound;
+        private TgcStaticSound initSound;
         private TgcStaticSound winSound;
         private bool winsoundplayed;
 
@@ -428,6 +429,9 @@ namespace TGC.Group.Model
 
             winSound = new TgcStaticSound();
             winSound.loadSound(MediaDir + "sound\\puerta, abrir.wav", DirectSound.DsDevice);
+
+            initSound = new TgcStaticSound();
+            initSound.loadSound(MediaDir + "sound\\init.wav", DirectSound.DsDevice);
 
             DirectSound.ListenerTracking = playerBBox;
 
@@ -729,6 +733,7 @@ namespace TGC.Group.Model
                     var randomPos = new Vector3(random.Next(0,5000), random.Next(150,250), random.Next(0,5000));
                     camaraFps.SetCamera(randomPos, camaraFps.LookAt,camaraFps.UpVector);
                 }
+                if (random.Next(0, 800) < 2) initSound.play();
             }
             else
             {

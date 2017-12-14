@@ -1413,6 +1413,7 @@ namespace TGC.Group.Model
             win = false;
             paused = false;
             keyCount = 0;*/
+            iluminacionPorLinterna = false;
             this.Dispose();
             this.Init();
             //ligthIntensity = 40;

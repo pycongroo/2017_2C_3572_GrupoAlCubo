@@ -5,10 +5,9 @@
 
 ## ScreenShot ##
 
-    ![Image of Yaktocat](https://github.com/sebastianciancio/2017_2C_3572_Wilson/blob/master/TGC.Group/Media/HUD/presentacion2.jpg)
-    ![Image of Yaktocat](https://github.com/sebastianciancio/2017_2C_3572_Wilson/blob/master/TGC.Group/Media/Documentacion/screenshot1.png)
-    ![Image of Yaktocat](https://github.com/sebastianciancio/2017_2C_3572_Wilson/blob/master/TGC.Group/Media/Documentacion/screenshot2.png)
-    ![Image of Yaktocat](https://github.com/sebastianciancio/2017_2C_3572_Wilson/blob/master/TGC.Group/Media/Documentacion/screenshot3.png)
+    ![Image of Yaktocat](https://github.com/pycongroo/2017_2C_3572_GrupoAlCubo/raw/dev_terr/TGC.Group/Media/Docs/Screenshot_92.png)
+    ![Image of Yaktocat](https://github.com/pycongroo/2017_2C_3572_GrupoAlCubo/raw/dev_terr/TGC.Group/Media/Docs/Screenshot_88.png)
+    ![Image of Yaktocat](https://github.com/pycongroo/2017_2C_3572_GrupoAlCubo/raw/dev_terr/TGC.Group/Media/Docs/Screenshot_89.png)
 
 ## Game Play ##
 
